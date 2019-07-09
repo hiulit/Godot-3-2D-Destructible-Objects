@@ -1,0 +1,64 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://object.tscn" type="PackedScene" id=1]
+[ext_resource path="res://explode-object.gd" type="Script" id=2]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 372, 33 )
+
+[node name="test" type="Node2D"]
+
+[node name="walls" type="Node2D" parent="."]
+
+[node name="wall_01" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_01"]
+position = Vector2( 481, 570 )
+shape = SubResource( 1 )
+
+[node name="wall_02" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_02"]
+position = Vector2( -15, 307 )
+shape = SubResource( 1 )
+
+[node name="wall_03" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_03"]
+position = Vector2( 1007, 130 )
+shape = SubResource( 1 )
+
+[node name="wall_04" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_04"]
+position = Vector2( 990, 525 )
+rotation = 1.57079
+shape = SubResource( 1 )
+
+[node name="wall_05" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_05"]
+position = Vector2( 85, 701 )
+rotation = 1.57079
+shape = SubResource( 1 )
+
+[node name="wall_06" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_06"]
+position = Vector2( 143, 14 )
+shape = SubResource( 1 )
+
+[node name="destructible_objects" type="Node2D" parent="."]
+
+[node name="object" parent="destructible_objects" instance=ExtResource( 1 )]
+position = Vector2( 498, 445 )
+script = ExtResource( 2 )
+blocks_impulse = 150
+blocks_gravity_scale = 5
+
