@@ -5,7 +5,7 @@ extends RigidBody2D
 # - Try to draw polygons out from the collision shapes
 
 export(int, 2, 10, 2) var blocks_per_side = 4
-export var blocks_impulse = 200
+export var blocks_impulse = 50
 export var blocks_gravity_scale = 4
 
 var obj_scene = PackedScene.new()
