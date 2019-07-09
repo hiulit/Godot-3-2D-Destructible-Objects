@@ -2,8 +2,10 @@ extends RigidBody2D
 
 # TO DO
 
-# - Get Node types (for the Sprite and the Collision)
 # - Try to draw polygons out from the collision shapes
+
+export(int, 2, 10, 2) var blocks_per_side = 6
+export(int, 5, 100, 5) var impulse = 60
 
 var obj_scene = PackedScene.new()
 var obj = []
@@ -14,26 +16,28 @@ var obj_collision_extents = Vector2()
 var obj_collision_position = Vector2()
 var obj_vframes
 var obj_hframes
-var frames = 0
+var obj_frame = 0
 var sprite_name
 var collision_name
 var destructible_collision_layers = 16
 var destructible_collision_masks = 1 + 16
 
-var drops = []
-
-var impulse = 100
-
 var can_detonate = true
 var has_detonated = false
 var detonate = false
-var timer = 0
-var max_time = 300
 
-var debug_mode = false
+var timer = 0
+var max_time = 500
+
+var debug_mode = true
 
 func _ready():
 	obj_scene.pack(duplicate(8))
+
+	if not self is RigidBody2D:
+		print("The '%s' node must be a 'RigidBody2D'" % self.name)
+		can_detonate = false
+		return
 
 	for child in get_children():
 		if child is Sprite:
@@ -44,9 +48,18 @@ func _ready():
 			print("The 'RigidBody2D' (%s) must contain at least a 'Sprite' and a 'CollisionShape2D'." % self.name)
 			can_detonate = false
 			return
+	
+	if blocks_per_side % 2 != 0:
+		print("'blocks_per_side' must be an even number!")
+		can_detonate = false
+		return
 
-	get_node(sprite_name).vframes = 4
-	get_node(sprite_name).hframes = 4
+	if debug_mode: print("-------------------------------")
+	if debug_mode: print("Debug mode for '%s'" % self.name)
+	if debug_mode: print("-------------------------------")
+
+	get_node(sprite_name).vframes = blocks_per_side
+	get_node(sprite_name).hframes = blocks_per_side
 	obj_vframes = get_node(sprite_name).vframes
 	obj_hframes = get_node(sprite_name).hframes
 
@@ -57,14 +70,14 @@ func _ready():
 		obj_width = get_node(sprite_name).texture.get_width()
 		obj_height = get_node(sprite_name).texture.get_height()
 
-	if debug_mode: print("sprite's width: ", obj_width)
-	if debug_mode: print("sprite's height: ", obj_height)
+	if debug_mode: print("object's width: ", obj_width)
+	if debug_mode: print("object's height: ", obj_height)
 
 	if get_node(sprite_name).centered:
 		obj_offset = Vector2(obj_width / 2, obj_height / 2)
 
-		if debug_mode: print("sprite is centered!")
-		if debug_mode: print("sprite's offset: ", obj_offset)
+		if debug_mode: print("object is centered!")
+		if debug_mode: print("object's offset: ", obj_offset)
 	
 	obj_collision_extents = Vector2((obj_width / 2) / obj_hframes,\
 									(obj_height / 2) / obj_vframes)
@@ -87,18 +100,18 @@ func _ready():
 		obj[n].get_node(collision_name).shape.extents = obj_collision_extents
 		obj[n].get_node(collision_name).position = obj_collision_position
 
-#		obj[n].modulate = Color(rand_range(0,1), rand_range(0,1), rand_range(0,1), 0.9)
+		if debug_mode: obj[n].modulate = Color(rand_range(0,1), rand_range(0,1), rand_range(0,1), 0.9)
 
 	# Position every block in place to create the whole sprite
 	for x in range(obj_hframes):
 		for y in range(obj_vframes):
-			obj[frames].position = Vector2(\
+			obj[obj_frame].position = Vector2(\
 				y * (obj_width / obj_hframes) - obj_offset.x + obj_collision_extents.x + position.x,\
 				x * (obj_height / obj_vframes) - obj_offset.y + obj_collision_extents.y + position.y)
 
-			if debug_mode: print("object ", frames, " position: ", obj[frames].position)
+			if debug_mode: print("object[", obj_frame, "] position: ", obj[obj_frame].position)
 
-			frames += 1
+			obj_frame += 1
 
 	call_deferred("add_children")
 
@@ -141,6 +154,10 @@ func add_children():
 
 func explosion():
 	if detonate:
+		if debug_mode: print("----------------------")
+		if debug_mode: print("Debug mode: Explosion!")
+		if debug_mode: print("----------------------")
+
 		for i in range(get_parent().get_child_count()):
 			var child = get_parent().get_child(i)
 
@@ -156,14 +173,23 @@ func explosion():
 			var child_scale = rand_range(0.5, 1.5)
 			child.get_node(sprite_name).scale = Vector2(child_scale, child_scale)
 			child.get_node(collision_name).scale = Vector2(child_scale, child_scale)
-
-			var child_gravity_scale = rand_range(1, 2)
+			
+			if debug_mode: print("object[", i, "] scale: ", child_scale)
+			
+			var child_gravity_scale = rand_range(1, blocks_per_side)
 			child.gravity_scale = child_gravity_scale
+			
+			if debug_mode: print("object[", i, "] gravity_scale: ", child_gravity_scale)
 
-#			child.mass = rand_range(1, impulse / 10)
-			child.mass = impulse / 10
+			var child_mass = impulse * child_scale
+			child.mass = child_mass
+			
+			if debug_mode: print("object[", i, "] mass: ", child_mass)
 
-			child.apply_torque_impulse(impulse * 2)
-			child.apply_impulse(Vector2(0, 0), Vector2(rand_range(-impulse, impulse), rand_range(-(impulse / 2), -impulse)))
-	
+			child.apply_torque_impulse((impulse / 2) * blocks_per_side)
+			child.apply_impulse(Vector2(rand_range(-impulse, impulse),\
+										rand_range(-impulse / 2, impulse)),\
+								Vector2(rand_range(-impulse, impulse),\
+										rand_range(-impulse / 2, impulse)))
+
 		detonate = false
