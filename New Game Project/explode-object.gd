@@ -27,10 +27,10 @@ var can_detonate = true
 var has_detonated = false
 var detonate = false
 
-var timer = 0
-var max_time = 500
+var timer = Timer.new()
+export var debris_max_time = 3
 
-var debug_mode = true
+var debug_mode = false
 
 func _ready():
 	obj_scene.pack(duplicate(8))
@@ -54,6 +54,11 @@ func _ready():
 		print("'blocks_per_side' must be an even number!")
 		can_detonate = false
 		return
+	
+	timer.connect("timeout", self ,"_on_timer_timeout") 
+	timer.set_one_shot(true)
+	timer.set_wait_time(debris_max_time)
+	add_child(timer)
 
 	if debug_mode: print("-------------------------------")
 	if debug_mode: print("Debug mode for '%s'" % self.name)
@@ -122,23 +127,14 @@ func _physics_process(delta):
 		can_detonate = false
 		detonate = true
 		has_detonated = true
+		timer.start()
 
 	if has_detonated:
-		timer += int(delta * 60)
-
 		for i in range(get_parent().get_child_count()):
 			var child = get_parent().get_child(i)
 			child.set_collision_layer(destructible_collision_layers)
 			child.set_collision_mask(destructible_collision_masks)
 			child.set_mode(MODE_RIGID)
- 
-		if timer >= max_time:
-			for i in range(get_parent().get_child_count()):
-				var child = get_parent().get_child(i)
-				child.set_mode(MODE_STATIC)
-				child.get_node(collision_name).disabled = true
-
-			timer = 0
 
 
 func _integrate_forces(state):
@@ -190,3 +186,10 @@ func explosion():
 										rand_range(-blocks_impulse, -blocks_impulse * 2)))
 
 		detonate = false
+
+func _on_timer_timeout():
+	print("TIMER OUT!")
+	for i in range(get_parent().get_child_count()):
+		var child = get_parent().get_child(i)
+		child.set_mode(MODE_STATIC)
+		child.get_node(collision_name).disabled = true
