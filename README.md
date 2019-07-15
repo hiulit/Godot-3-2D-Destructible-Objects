@@ -24,6 +24,8 @@ RigidBody2D
 
 ![Godot-3-2D-Destructible-Objects-Tree](examples/tree.png)
 
+The reason for organizing it this way is because then you can add particles (`Partcicles2D` or `CPUParticles2D`) or hitboxes (`Area2D`) or whatever you feel like to the `Node2D` (e.g. `object_01`) holding the main `RigidBody2D`.
+
 ## Parameters
 
 ### Blocks Per Side
@@ -94,6 +96,8 @@ Thanks to:
 
 * Airvikar - For this [Youtube video](https://www.youtube.com/watch?v=ExX7Qyldtfg) that is the code base for this script.
 * Securas - For all the [great games](https://securas.itch.io/) and [Twitch streams](https://www.twitch.tv/sec_ras/videos?filter=all&sort=time) that give me lots of ideas, and particularly, the destructible objects one.
+* [Scott Lembcke](https://twitter.com/slembcke) - For letting me know about Voronoi regions and helping me with adding more depth to the explosion (random collisions and z-index).
+
 
 ## License
 
