@@ -100,7 +100,7 @@ Thanks to:
 
 * Airvikar - For this [Youtube video](https://www.youtube.com/watch?v=ExX7Qyldtfg) that is the code base for this script.
 * [Securas](https://twitter.com/Securas2010) - For all the [great games](https://securas.itch.io/) and [Twitch streams](https://www.twitch.tv/sec_ras/videos?filter=all&sort=time) that give me lots of ideas, and particularly, the destructible objects one.
-* [Scott Lembcke](https://twitter.com/slembcke) - For letting me know about Voronoi regions and helping me with adding more depth to the explosion (random collisions and z-index).
+* [Scott Lembcke](https://twitter.com/slembcke) - For letting me know about Voronoi regions (which aren't currently available) and helping me with adding more depth to the explosion (random collisions and z-index).
 
 
 ## License
