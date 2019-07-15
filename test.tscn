@@ -1,0 +1,127 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://object.tscn" type="PackedScene" id=1]
+[ext_resource path="res://explode_object.gd" type="Script" id=2]
+[ext_resource path="res://particles.tscn" type="PackedScene" id=3]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 372, 33 )
+
+[node name="test" type="Node2D"]
+
+[node name="walls" type="Node2D" parent="."]
+editor/display_folded = true
+
+[node name="wall_01" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_01"]
+position = Vector2( 481, 570 )
+shape = SubResource( 1 )
+
+[node name="wall_02" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+position = Vector2( 0, 26 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_02"]
+position = Vector2( -15, 307 )
+shape = SubResource( 1 )
+
+[node name="wall_03" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+position = Vector2( 13, 54 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_03"]
+position = Vector2( 1007, 130 )
+shape = SubResource( 1 )
+
+[node name="wall_04" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_04"]
+position = Vector2( 990, 525 )
+rotation = 1.57079
+shape = SubResource( 1 )
+
+[node name="wall_05" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_05"]
+position = Vector2( 85, 701 )
+rotation = 1.57079
+shape = SubResource( 1 )
+
+[node name="wall_06" type="StaticBody2D" parent="walls"]
+editor/display_folded = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_06"]
+position = Vector2( 143, 14 )
+shape = SubResource( 1 )
+
+[node name="destructible_objects" type="Node2D" parent="."]
+
+[node name="object_01" type="Node2D" parent="destructible_objects"]
+editor/display_folded = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="object" parent="destructible_objects/object_01" instance=ExtResource( 1 )]
+position = Vector2( 517, 473 )
+gravity_scale = 6.0
+script = ExtResource( 2 )
+
+[node name="particles" parent="destructible_objects/object_01" instance=ExtResource( 3 )]
+position = Vector2( 517, 473 )
+scale = Vector2( 1.5, 1.5 )
+
+[node name="object_02" type="Node2D" parent="destructible_objects"]
+editor/display_folded = true
+position = Vector2( 41, 44 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="object" parent="destructible_objects/object_02" instance=ExtResource( 1 )]
+position = Vector2( 176, 192 )
+gravity_scale = 6.0
+script = ExtResource( 2 )
+
+[node name="particles" parent="destructible_objects/object_02" instance=ExtResource( 3 )]
+position = Vector2( 176, 192 )
+scale = Vector2( 1.5, 1.5 )
+
+[node name="object_03" type="Node2D" parent="destructible_objects"]
+editor/display_folded = true
+position = Vector2( 605, -105 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="object" parent="destructible_objects/object_03" instance=ExtResource( 1 )]
+position = Vector2( 176, 192 )
+gravity_scale = 6.0
+script = ExtResource( 2 )
+
+[node name="particles" parent="destructible_objects/object_03" instance=ExtResource( 3 )]
+position = Vector2( 176, 192 )
+scale = Vector2( 1.5, 1.5 )
+
