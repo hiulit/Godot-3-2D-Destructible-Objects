@@ -196,8 +196,6 @@ func detonate():
 		child.get_node(object.sprite_name).scale = Vector2(child_scale, child_scale)
 		child.get_node(object.collision_name).scale = Vector2(child_scale, child_scale)
 
-		child.mass = child_scale
-
 		child.set_collision_layer(0 if randf() < 0.5 else object.collision_layers)
 		child.set_collision_mask(0 if randf() < 0.5 else object.collision_masks)
 
