@@ -1,8 +1,12 @@
 # Godot 3 2D Destructible Objects
 
-
+A script that takes a sprite, divides it into blocks and makes them explode 💥!
 
 ![Godot-3-2D-Destructible-Objects](examples/Godot-3-2D-Destructible-Objects.gif)
+
+## Limitations
+
+Right now, the sprites must be square for this script to work properly.
 
 ## Prerequisites
 
