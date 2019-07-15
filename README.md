@@ -28,7 +28,7 @@ RigidBody2D
 
 ![Godot-3-2D-Destructible-Objects-Tree](examples/tree.png)
 
-The reason for organizing it this way is because then you can add particles (`Partcicles2D` or `CPUParticles2D`) or hitboxes (`Area2D`) or whatever you feel like to the `Node2D` (e.g. `object_01`) holding the main `RigidBody2D`.
+The reason for organizing it this way is because then you can add particles (`Partcicles2D` or `CPUParticles2D`) or hitboxes (`Area2D`) or whatever you feel like to the `Node2D` (e.g. `object_01`) holding the main `RigidBody2D` and you can then use this script to control those nodes.
 
 ## Parameters
 
