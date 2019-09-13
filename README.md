@@ -56,7 +56,13 @@ The reason for organizing it this way is because then you can add particles (`Pa
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `debris_max_time` | `float` | The seconds it will pass until the blocks become `STATIC`. |
+| `debris_max_time` | `float` | The seconds it will pass until the blocks become `STATIC` or, if `remove_debris` is set to `true`, the blocks dissapear. |
+
+### Remove debris
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `remove_debris` | `bool` | Controls whether the debris stays or disappears. If set to `true`, the debris will dissapear when `debris_max_time` is over. |
 
 ### Collision layers
 
