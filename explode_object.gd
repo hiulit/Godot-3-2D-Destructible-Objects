@@ -1,12 +1,13 @@
 extends RigidBody2D
 
-export(int, 2, 10, 2) var blocks_per_side = 6
-export(float) var blocks_impulse = 150
-export(float) var blocks_gravity_scale = 6
-export(float) var debris_max_time = 5
-export(int) var collision_layers = 1
-export(int) var collision_masks = 1
-export(bool) var debug_mode = false
+export (int, 2, 10, 2) var blocks_per_side = 6
+export (float) var blocks_impulse = 150
+export (float) var blocks_gravity_scale = 6
+export (float) var debris_max_time = 5
+export (bool) var remove_debris = false
+export (int) var collision_layers = 1
+export (int) var collision_masks = 1
+export (bool) var debug_mode = false
 
 var object = {}
 
@@ -33,6 +34,7 @@ func _ready():
 		offset = Vector2(),
 		parent = get_parent(),
 		particles_name = null,
+		remove_debris = remove_debris,
 		scene = PackedScene.new(),
 		sprite_name = null,
 		vframes = 1,
@@ -202,9 +204,9 @@ func detonate():
 		child.z_index = 0 if randf() < 0.5 else -1
 
 		var child_color = rand_range(100, 255) / 255
-		var tween = Tween.new()
-		add_child(tween)
-		tween.interpolate_property(
+		var color_tween = Tween.new()
+		add_child(color_tween)
+		color_tween.interpolate_property(
 			child,
 			"modulate", 
 			Color(1.0, 1.0, 1.0, 1.0),
@@ -212,7 +214,7 @@ func detonate():
 			0.25,
 			Tween.TRANS_LINEAR,
 			Tween.EASE_IN)
-		tween.start()
+		color_tween.start()
 
 		child.set_mode(MODE_RIGID)
 
@@ -225,7 +227,7 @@ func explosion():
 		for i in range(object.blocks_container.get_child_count()):
 			var child = object.blocks_container.get_child(i)
 
-			child.apply_torque_impulse((blocks_impulse / 2) * blocks_per_side)
+			child.add_torque((blocks_impulse / 2) * (blocks_per_side * rand_range(1.0, blocks_per_side)))
 			child.apply_impulse(Vector2(rand_range(-blocks_impulse / 2, blocks_impulse / 2),\
 										rand_range(-blocks_impulse, blocks_impulse * 2)),\
 								Vector2(rand_range(-blocks_impulse / 2, blocks_impulse / 2),\
@@ -239,5 +241,27 @@ func _on_debris_timer_timeout():
 	for i in range(object.blocks_container.get_child_count()):
 		var child = object.blocks_container.get_child(i)
 
-		child.set_mode(MODE_STATIC)
-		child.get_node(object.collision_name).disabled = true
+		if not object.remove_debris:
+			child.set_mode(MODE_STATIC)
+			child.get_node(object.collision_name).disabled = true
+		else:
+			var color_r = child.modulate.r
+			var color_g = child.modulate.g
+			var color_b = child.modulate.b
+			var color_a = child.modulate.a
+			
+			var opacity_tween = Tween.new()
+			add_child(opacity_tween)
+			opacity_tween.connect("tween_completed", self, "_on_opacity_tween_completed")
+			opacity_tween.interpolate_property(
+				child,
+				"modulate", 
+				Color(color_r, color_g, color_b, color_a),
+				Color(color_r, color_g, color_b, 0.0),
+				rand_range(0.0, 1.0),
+				Tween.TRANS_LINEAR,
+				Tween.EASE_IN)
+			opacity_tween.start()
+
+func _on_opacity_tween_completed(obj, key):
+	obj.queue_free()
