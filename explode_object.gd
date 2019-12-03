@@ -263,5 +263,11 @@ func _on_debris_timer_timeout():
 				Tween.EASE_IN)
 			opacity_tween.start()
 
+
 func _on_opacity_tween_completed(obj, key):
 	obj.queue_free()
+
+	# Remove the parent node after the last block is gone.
+	if object.blocks_container.get_child_count() == 1:
+		object.parent.queue_free()
+		self.queue_free()
