@@ -123,5 +123,3 @@ script = ExtResource( 2 )
 [node name="particles" parent="destructible_objects/object_03" instance=ExtResource( 3 )]
 position = Vector2( 176, 192 )
 scale = Vector2( 1.5, 1.5 )
-
-[node name="object_04" type="Node2D" parent="destructible_objects"]
