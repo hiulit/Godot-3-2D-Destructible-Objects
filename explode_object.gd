@@ -184,7 +184,7 @@ func detonate():
 		if child is Particles2D or child is CPUParticles2D:
 			object.particles_name = child.name
 			object.has_particles = true
-	
+
 	if object.has_particles:
 		object.parent.get_node(object.particles_name).emitting = true
 
@@ -220,6 +220,7 @@ func detonate():
 
 	object.debris_timer.start()
 
+
 func explosion():
 	if object.detonate:
 		if debug_mode: print("'%s' object exploded!" % self.name)
@@ -235,6 +236,7 @@ func explosion():
 
 		object.detonate = false
 
+
 func _on_debris_timer_timeout():
 	if debug_mode: print("'%s' object's debris timer (%ss) timed out!" % [self.name, debris_max_time])
 
@@ -249,7 +251,7 @@ func _on_debris_timer_timeout():
 			var color_g = child.modulate.g
 			var color_b = child.modulate.b
 			var color_a = child.modulate.a
-			
+
 			var opacity_tween = Tween.new()
 			add_child(opacity_tween)
 			opacity_tween.connect("tween_completed", self, "_on_opacity_tween_completed")
