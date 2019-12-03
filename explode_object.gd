@@ -41,7 +41,7 @@ func _ready():
 		width = 0
 	}
 
-	# Randomize the seed of the random number generator
+	# Randomize the seed of the random number generator.
 	randomize()
 
 	if not self is RigidBody2D:
@@ -66,7 +66,7 @@ func _ready():
 		object.can_detonate = false
 		return
 
-	# Set the debris timer
+	# Set the debris timer.
 	object.debris_timer.connect("timeout", self ,"_on_debris_timer_timeout") 
 	object.debris_timer.set_one_shot(true)
 	object.debris_timer.set_wait_time(object.debris_max_time)
@@ -76,7 +76,7 @@ func _ready():
 	if debug_mode: print("Debug mode for '%s'" % self.name)
 	if debug_mode: print("--------------------------------")
 
-	# Use vframes and hframes to divide the sprite
+	# Use vframes and hframes to divide the sprite.
 	get_node(object.sprite_name).vframes = object.blocks_per_side
 	get_node(object.sprite_name).hframes = object.blocks_per_side
 	object.vframes = get_node(object.sprite_name).vframes
@@ -85,7 +85,7 @@ func _ready():
 	if debug_mode: print("object's blocks per side: ", object.blocks_per_side)
 	if debug_mode: print("object's total blocks: ", object.blocks_per_side * object.blocks_per_side)
 
-	# Check if the sprite is using Region to get the proper width and height
+	# Check if the sprite is using Region to get the proper width and height.
 	if get_node(object.sprite_name).region_enabled:
 		object.width = float(get_node(object.sprite_name).region_rect.size.x)
 		object.height = float(get_node(object.sprite_name).region_rect.size.y)
@@ -96,7 +96,7 @@ func _ready():
 	if debug_mode: print("object's width: ", object.width)
 	if debug_mode: print("object's height: ", object.height)
 
-	# Check if the sprite is centered to get the offset
+	# Check if the sprite is centered to get the offset.
 	if get_node(object.sprite_name).centered:
 		object.offset = Vector2(object.width / 2, object.height / 2)
 
@@ -113,14 +113,14 @@ func _ready():
 
 	if debug_mode: print("object's collision_position: ", object.collision_position)
 
-	# Set each block's properties
+	# Set each block's properties.
 	for n in range(object.vframes * object.hframes):
 		# Duplicate the object.
 		var duplicated_object = self.duplicate(8)
 		# Append it to the blocks array.
 		object.blocks.append(duplicated_object)
 
-		# Create a new collision shape for each block
+		# Create a new collision shape for each block.
 		var shape = RectangleShape2D.new()
 		shape.extents = object.collision_extents
 
@@ -133,7 +133,7 @@ func _ready():
 
 		if debug_mode: object.blocks[n].modulate = Color(rand_range(0, 1), rand_range(0, 1), rand_range(0, 1), 0.9)
 
-	# Position each block in place to create the whole sprite
+	# Position each block in place to create the whole sprite.
 	for x in range(object.hframes):
 		for y in range(object.vframes):
 			object.blocks[object.frame].position = Vector2(\
@@ -152,7 +152,7 @@ func _ready():
 func _physics_process(delta):
 	if Input.is_key_pressed(KEY_Q) and object.can_detonate or \
 		Input.is_mouse_button_pressed(BUTTON_LEFT) and object.can_detonate:
-		# This is what triggers the explosion, setting 'object.detonate' to 'true',
+		# This is what triggers the explosion, setting 'object.detonate' to 'true'.
 		object.detonate = true
 
 	if object.detonate:
