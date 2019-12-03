@@ -70,7 +70,7 @@ func _ready():
 	object.debris_timer.connect("timeout", self ,"_on_debris_timer_timeout") 
 	object.debris_timer.set_one_shot(true)
 	object.debris_timer.set_wait_time(object.debris_max_time)
-	add_child(object.debris_timer)
+	add_child(object.debris_timer, true)
 
 	if debug_mode: print("--------------------------------")
 	if debug_mode: print("Debug mode for '%s'" % self.name)
@@ -165,9 +165,9 @@ func _integrate_forces(state):
 
 func add_children(object):
 	for i in range(object.blocks.size()):
-		object.blocks_container.add_child(object.blocks[i])
+		object.blocks_container.add_child(object.blocks[i], true)
 
-	object.parent.add_child(object.blocks_container)
+	object.parent.add_child(object.blocks_container, true)
 
 	# Move the self element faaaar away, instead of removing it,
 	# so we can still use the script and its functions.
@@ -211,7 +211,7 @@ func detonate():
 			0.25,
 			Tween.TRANS_LINEAR,
 			Tween.EASE_IN)
-		add_child(color_tween)
+		add_child(color_tween, true)
 		color_tween.start()
 
 		child.set_mode(MODE_RIGID)
@@ -267,7 +267,7 @@ func _on_debris_timer_timeout():
 				rand_range(0.0, 1.0),
 				Tween.TRANS_LINEAR,
 				Tween.EASE_IN)
-			add_child(opacity_tween)
+			add_child(opacity_tween, true)
 			opacity_tween.start()
 
 
