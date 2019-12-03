@@ -70,6 +70,7 @@ func _ready():
 	object.debris_timer.connect("timeout", self ,"_on_debris_timer_timeout") 
 	object.debris_timer.set_one_shot(true)
 	object.debris_timer.set_wait_time(object.debris_max_time)
+	object.debris_timer.name = "debris_timer"
 	add_child(object.debris_timer, true)
 
 	if debug_mode: print("--------------------------------")
