@@ -7,6 +7,7 @@ export (float) var debris_max_time = 5
 export (bool) var remove_debris = false
 export (int) var collision_layers = 1
 export (int) var collision_masks = 1
+export (float) var explosion_delay = 0.0
 export (bool) var debug_mode = false
 
 var object = {}
@@ -230,6 +231,13 @@ func explosion():
 										rand_range(-blocks_impulse, blocks_impulse * 2)),\
 								Vector2(rand_range(-blocks_impulse / 2, blocks_impulse / 2),\
 										rand_range(-blocks_impulse, -blocks_impulse * 2)))
+
+		# Add a delay before setting 'object.detonate' to 'false'.
+		# Sometimes, depending on how the explosions are set up,
+		# 'object.detonate' is set to 'false' so quickly that the explosion never happens.
+		# If this happens, try setting 'explosions_delay' to a really small number,
+		# like '0.01' or even lower.
+		if explosion_delay > 0: yield(get_tree().create_timer(explosion_delay), "timeout")
 
 		object.detonate = false
 
