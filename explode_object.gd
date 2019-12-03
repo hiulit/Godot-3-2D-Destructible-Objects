@@ -203,7 +203,6 @@ func detonate():
 
 		var child_color = rand_range(100, 255) / 255
 		var color_tween = Tween.new()
-		add_child(color_tween)
 		color_tween.interpolate_property(
 			child,
 			"modulate", 
@@ -212,6 +211,7 @@ func detonate():
 			0.25,
 			Tween.TRANS_LINEAR,
 			Tween.EASE_IN)
+		add_child(color_tween)
 		color_tween.start()
 
 		child.set_mode(MODE_RIGID)
@@ -258,7 +258,6 @@ func _on_debris_timer_timeout():
 			var color_a = child.modulate.a
 
 			var opacity_tween = Tween.new()
-			add_child(opacity_tween)
 			opacity_tween.connect("tween_completed", self, "_on_opacity_tween_completed")
 			opacity_tween.interpolate_property(
 				child,
@@ -268,6 +267,7 @@ func _on_debris_timer_timeout():
 				rand_range(0.0, 1.0),
 				Tween.TRANS_LINEAR,
 				Tween.EASE_IN)
+			add_child(opacity_tween)
 			opacity_tween.start()
 
 
