@@ -84,7 +84,7 @@ func _ready():
 	get_node(object.sprite_name).hframes = object.blocks_per_side
 	object.vframes = get_node(object.sprite_name).vframes
 	object.hframes = get_node(object.sprite_name).hframes
-	
+
 	if debug_mode: print("object's blocks per side: ", object.blocks_per_side)
 	if debug_mode: print("object's total blocks: ", object.blocks_per_side * object.blocks_per_side)
 
@@ -106,7 +106,6 @@ func _ready():
 		if debug_mode: print("object is centered!")
 		if debug_mode: print("object's offset: ", object.offset)
 
-
 	object.collision_extents = Vector2((object.width / 2) / object.hframes,\
 										(object.height / 2) / object.vframes)
 
@@ -126,7 +125,6 @@ func _ready():
 		shape.extents = object.collision_extents
 
 		object.blocks[n].set_mode(MODE_STATIC)
-
 		object.blocks[n].get_node(object.sprite_name).vframes = object.vframes
 		object.blocks[n].get_node(object.sprite_name).hframes = object.hframes
 		object.blocks[n].get_node(object.sprite_name).frame = n
@@ -147,12 +145,13 @@ func _ready():
 			object.frame += 1
 
 	call_deferred("add_children", object)
-	
+
 	if debug_mode: print("--------------------------------")
 
 
 func _physics_process(delta):
 	if Input.is_key_pressed(KEY_Q) and object.can_detonate or\
+	if Input.is_key_pressed(KEY_Q) and object.can_detonate or \
 		Input.is_mouse_button_pressed(BUTTON_LEFT) and object.can_detonate:
 		# This is what triggers the explosion, setting 'object.detonate' to 'true',
 		object.detonate = true
