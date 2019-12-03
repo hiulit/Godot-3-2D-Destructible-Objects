@@ -7,7 +7,7 @@ export (float) var debris_max_time = 5
 export (bool) var remove_debris = false
 export (int) var collision_layers = 1
 export (int) var collision_masks = 1
-export (float) var explosion_delay = 0.0
+export (bool) var explosion_delay = false
 export (bool) var debug_mode = false
 
 var object = {}
@@ -161,7 +161,7 @@ func _physics_process(delta):
 
 
 func _integrate_forces(state):
-	explosion()
+	explosion(state.step)
 
 
 func add_children(object):
@@ -220,7 +220,7 @@ func detonate():
 	object.debris_timer.start()
 
 
-func explosion():
+func explosion(delta):
 	if object.detonate:
 		if debug_mode: print("'%s' object exploded!" % self.name)
 
@@ -236,9 +236,8 @@ func explosion():
 		# Add a delay before setting 'object.detonate' to 'false'.
 		# Sometimes, depending on how the explosions are set up,
 		# 'object.detonate' is set to 'false' so quickly that the explosion never happens.
-		# If this happens, try setting 'explosions_delay' to a really small number,
-		# like '0.01' or even lower.
-		if explosion_delay > 0: yield(get_tree().create_timer(explosion_delay), "timeout")
+		# If this happens, try setting 'explosion_delay' to 'true'.
+		if explosion_delay: yield(get_tree().create_timer(delta), "timeout")
 
 		object.detonate = false
 
