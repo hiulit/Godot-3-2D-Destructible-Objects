@@ -35,7 +35,6 @@ func _ready():
 		parent = get_parent(),
 		particles_name = null,
 		remove_debris = remove_debris,
-		scene = PackedScene.new(),
 		sprite_name = null,
 		vframes = 1,
 		width = 0
@@ -43,9 +42,6 @@ func _ready():
 
 	# Randomize the seed of the random number generator
 	randomize()
-
-	# Dulicate the object's scene
-	object.scene.pack(duplicate(8))
 
 	if not self is RigidBody2D:
 		print("ERROR: The '%s' node must be a 'RigidBody2D'" % self.name)
@@ -118,7 +114,10 @@ func _ready():
 
 	# Set each block's properties
 	for n in range(object.vframes * object.hframes):
-		object.blocks.append(object.scene.instance())
+		# Duplicate the object.
+		var duplicated_object = self.duplicate(8)
+		# Append it to the blocks array.
+		object.blocks.append(duplicated_object)
 
 		# Create a new collision shape for each block
 		var shape = RectangleShape2D.new()
