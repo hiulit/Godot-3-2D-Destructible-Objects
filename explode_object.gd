@@ -86,7 +86,7 @@ func _ready():
 	if debug_mode: print("object's blocks per side: ", object.blocks_per_side)
 	if debug_mode: print("object's total blocks: ", object.blocks_per_side * object.blocks_per_side)
 
-	# Check if the sprite is using Region to get the proper width and height.
+	# Check if the sprite is using 'Region' to get the proper width and height.
 	if get_node(object.sprite_name).region_enabled:
 		object.width = float(get_node(object.sprite_name).region_rect.size.x)
 		object.height = float(get_node(object.sprite_name).region_rect.size.y)
