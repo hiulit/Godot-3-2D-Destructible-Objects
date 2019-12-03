@@ -125,4 +125,3 @@ position = Vector2( 176, 192 )
 scale = Vector2( 1.5, 1.5 )
 
 [node name="object_04" type="Node2D" parent="destructible_objects"]
-
