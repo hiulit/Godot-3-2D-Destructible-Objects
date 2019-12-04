@@ -260,6 +260,9 @@ func _on_debris_timer_timeout():
 		if not object.remove_debris:
 			child.set_mode(MODE_STATIC)
 			child.get_node(object.collision_name).disabled = true
+
+			# Remove the self element as we don't need it anymore.
+			self.queue_free()
 		else:
 			var color_r = child.modulate.r
 			var color_g = child.modulate.g
