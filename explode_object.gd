@@ -236,11 +236,7 @@ func explosion(delta):
 		for i in range(object.blocks_container.get_child_count()):
 			var child = object.blocks_container.get_child(i)
 
-			child.add_torque((blocks_impulse / 2) * (blocks_per_side * rand_range(1.0, blocks_per_side)))
-			child.apply_impulse(Vector2(rand_range(-blocks_impulse / 2, blocks_impulse / 2),\
-										rand_range(-blocks_impulse, blocks_impulse * 2)),\
-								Vector2(rand_range(-blocks_impulse / 2, blocks_impulse / 2),\
-										rand_range(-blocks_impulse, -blocks_impulse * 2)))
+			child.apply_central_impulse(Vector2(rand_range(-blocks_impulse, blocks_impulse), -blocks_impulse))
 
 		# Add a delay before setting 'object.detonate' to 'false'.
 		# Sometimes, depending on how the explosions are set up,
