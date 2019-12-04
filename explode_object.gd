@@ -164,6 +164,10 @@ func _physics_process(delta):
 	if object.detonate:
 		detonate()
 
+	# Remove the parent node after the last block is gone.
+	if object.blocks_container.get_child_count() == 0:
+		object.parent.queue_free()
+
 
 func _integrate_forces(state):
 	explosion(state.step)
@@ -278,8 +282,3 @@ func _on_debris_timer_timeout():
 
 func _on_opacity_tween_completed(obj, key):
 	obj.queue_free()
-
-	# Remove the parent node after the last block is gone.
-	if object.blocks_container.get_child_count() == 1:
-		object.parent.queue_free()
-		self.queue_free()
