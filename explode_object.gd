@@ -1,8 +1,8 @@
 extends RigidBody2D
 
 export (int, 2, 10, 2) var blocks_per_side = 6
-export (float) var blocks_impulse = 150
-export (float) var blocks_gravity_scale = 6
+export (float) var blocks_impulse = 600
+export (float) var blocks_gravity_scale = 10
 export (float) var debris_max_time = 5
 export (bool) var remove_debris = false
 export (int) var collision_layers = 1
