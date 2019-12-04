@@ -40,6 +40,9 @@ func _ready():
 		vframes = 1,
 		width = 0
 	}
+	
+	# Add a unique name to 'blocks_container'.
+	object.blocks_container.name = self.name + "_blocks_container"
 
 	# Randomize the seed of the random number generator.
 	randomize()
@@ -118,6 +121,8 @@ func _ready():
 	for n in range(object.vframes * object.hframes):
 		# Duplicate the object.
 		var duplicated_object = self.duplicate(8)
+		# Add a unique name to each block.
+		duplicated_object.name = self.name + "_block_" + str(n)
 		# Append it to the blocks array.
 		object.blocks.append(duplicated_object)
 
