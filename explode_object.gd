@@ -165,6 +165,7 @@ func _physics_process(delta):
 		detonate()
 
 	# Remove the parent node after the last block is gone.
+	yield(get_tree().create_timer(delta), "timeout")
 	if object.blocks_container.get_child_count() == 0:
 		object.parent.queue_free()
 
