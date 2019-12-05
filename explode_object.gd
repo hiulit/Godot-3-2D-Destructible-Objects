@@ -8,6 +8,7 @@ export (bool) var remove_debris = false
 export (int) var collision_layers = 1
 export (int) var collision_masks = 1
 export (bool) var explosion_delay = false
+export (String) var fake_explosions_group = "fake_explosion_particles"
 export (bool) var debug_mode = false
 
 var object = {}
@@ -34,7 +35,7 @@ func _ready():
 		hframes = 1,
 		offset = Vector2(),
 		parent = get_parent(),
-		particles_name = null,
+		particles = null,
 		remove_debris = remove_debris,
 		sprite_name = null,
 		vframes = 1,
@@ -189,13 +190,17 @@ func add_children(object):
 func detonate():
 	object.can_detonate = false
 
+	# Check if the parent node has particles as a child.
 	for child in object.parent.get_children():
-		if child is Particles2D or child is CPUParticles2D:
-			object.particles_name = child.name
+		if child is Particles2D or child is CPUParticles2D or child.is_in_group(fake_explosions_group):
+			object.particles = child
 			object.has_particles = true
 
 	if object.has_particles:
-		object.parent.get_node(object.particles_name).emitting = true
+		if object.particles is Particles2D or object.particles is CPUParticles2D:
+			object.particles.emitting = true
+		elif object.particles.is_in_group(fake_explosions_group):
+			object.particles.particles_explode = true
 
 	for i in range(object.blocks_container.get_child_count()):
 		var child = object.blocks_container.get_child(i)
