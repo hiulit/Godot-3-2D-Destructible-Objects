@@ -1,17 +1,18 @@
 extends Node2D
 
-export (int) var min_particles_number = 100
-export (int) var max_particles_number = 200
+export (int) var min_particles_number = 200
+export (int) var max_particles_number = 400
 
-export (float) var min_particles_gravity = 100
-export (float) var max_particles_gravity = 400
+export (float) var min_particles_gravity = 200
+export (float) var max_particles_gravity = 600
 
-export (float) var min_particles_velocity = 400
+export (float) var min_particles_velocity = 200
 export (float) var max_particles_velocity = 600
 
 export (int) var max_particles_position_x = ProjectSettings.get_setting("display/window/size/width")
 export (int) var max_particles_position_y = ProjectSettings.get_setting("display/window/size/height")
 
+export (int) var min_particles_size = 2
 export (int) var max_particles_size = 6
 
 export (bool) var get_random_position = false
@@ -22,6 +23,8 @@ var particles = []
 var particles_number
 var particles_initial_position
 var particles_colors = [
+	Color("#ffffff"),
+	Color("#000000"),
 	Color("#ff004d"),
 	Color("#ffa300"),
 	Color("#ffec27")
@@ -31,6 +34,7 @@ var particles_timer
 var particles_timer_wait_time = 1
 
 func _ready():
+	Engine.time_scale = 0.5
 	# Add to a group so it can be found from anywhere.
 	add_to_group("fake_explosion_particles")
 
@@ -55,6 +59,7 @@ func _process(delta):
 	# If there are particles in the particles array and
 	# 'particles_explode' is 'true', make them explode.
 	if particles.size() > 0 and particles_explode == true:
+
 		_particles_explode(delta)
 
 		# Redraw the particles every frame.
@@ -73,13 +78,13 @@ func _draw():
 
 func _particles_explode(delta):
 	for particle in particles:
-		particle.velocity.x *= 0.97
-		particle.velocity.y *= 0.97
+		particle.velocity.x *= 1
+		particle.velocity.y *= 1
 		particle.position += (particle.velocity + particle.gravity) * delta
 
 		# Fade out the particles.
 		if particle.color.a > 0:
-			particle.color.a -= 0.99 * delta
+			particle.color.a -= particle.alpha * delta
 
 			if particle.color.a < 0:
 				particle.color.a = 0
@@ -101,8 +106,8 @@ func _create_particles():
 	for i in particles_number:
 		# Create the particle object.
 		var particle = {
+			alpha = null,
 			color = null,
-			index = i,
 			gravity = null,
 			position = particles_initial_position,
 			size = null,
@@ -110,6 +115,7 @@ func _create_particles():
 		}
 
 		# Assign random variables to the particle object.
+		particle.alpha = _get_random_alpha()
 		particle.color = _get_random_color()
 		particle.gravity = _get_random_gravity()
 		particle.size = _get_random_size()
@@ -117,6 +123,12 @@ func _create_particles():
 
 		# Push the particle to the particles array.
 		particles.push_back(particle)
+
+
+func _get_random_alpha():
+	randomize()
+	var random_alpha = rand_range(1, 10)
+	return random_alpha
 
 
 func _get_random_color():
@@ -156,7 +168,7 @@ func _get_random_position():
 
 func _get_random_size():
 	randomize()
-	var random_size = randi() % max_particles_size + 1
+	var random_size = randi() % max_particles_size + min_particles_size
 	random_size = Vector2(random_size, random_size)
 	return random_size
 
