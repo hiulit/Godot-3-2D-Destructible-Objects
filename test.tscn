@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://destructible_object.tscn" type="PackedScene" id=1]
 [ext_resource path="res://explode_object.gd" type="Script" id=2]
 [ext_resource path="res://explosion_particles.tscn" type="PackedScene" id=3]
 [ext_resource path="res://fake_explosion_particles.tscn" type="PackedScene" id=4]
+[ext_resource path="res://fake_explosion_particles.gd" type="Script" id=5]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 372, 33 )
@@ -80,7 +81,7 @@ shape = SubResource( 1 )
 [node name="destructible_objects" type="Node2D" parent="."]
 
 [node name="destructible_object_01" type="Node2D" parent="destructible_objects"]
-position = Vector2( 520, 472.556 )
+position = Vector2( 514, 473 )
 __meta__ = {
 "_edit_group_": true
 }
@@ -92,7 +93,8 @@ script = ExtResource( 2 )
 [node name="explosion_particles" parent="destructible_objects/destructible_object_01" instance=ExtResource( 3 )]
 scale = Vector2( 1.5, 1.5 )
 
-[node name="fake_explosion_particles" parent="destructible_objects/destructible_object_01" instance=ExtResource( 4 )]
+[node name="fake_explosion_particles" type="Node2D" parent="destructible_objects/destructible_object_01" instance=ExtResource( 4 )]
+script = ExtResource( 5 )
 
 [node name="destructible_object_02" type="Node2D" parent="destructible_objects"]
 position = Vector2( 220, 240 )
@@ -107,7 +109,7 @@ script = ExtResource( 2 )
 [node name="explosion_particles" parent="destructible_objects/destructible_object_02" instance=ExtResource( 3 )]
 scale = Vector2( 1.5, 1.5 )
 
-[node name="fake_explosion_particles" parent="destructible_objects/destructible_object_02" instance=ExtResource( 4 )]
+[node name="fake_particles" parent="destructible_objects/destructible_object_02" instance=ExtResource( 4 )]
 
 [node name="destructible_object_03" type="Node2D" parent="destructible_objects"]
 position = Vector2( 800, 87 )
@@ -122,4 +124,4 @@ script = ExtResource( 2 )
 [node name="explosion_particles" parent="destructible_objects/destructible_object_03" instance=ExtResource( 3 )]
 scale = Vector2( 1.5, 1.5 )
 
-[node name="fake_explosion_particles" parent="destructible_objects/destructible_object_03" instance=ExtResource( 4 )]
+[node name="fake_particles" parent="destructible_objects/destructible_object_03" instance=ExtResource( 4 )]
