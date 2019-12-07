@@ -1,6 +1,6 @@
 extends Node2D
 
-export (int) var min_particles_number = 200
+export (int) var min_particles_number = 400
 export (int) var max_particles_number = 400
 
 export (float) var min_particles_gravity = 200
@@ -18,25 +18,35 @@ export (int) var max_particles_size = 6
 export (bool) var get_random_position = false
 export (bool) var start_timer = false
 export (bool) var particles_explode = false
+export (String) var group_name = "fake_explosion_particles"
 
 var particles = []
 var particles_number
 var particles_initial_position
-var particles_colors = [
-	Color("#ffffff"),
-	Color("#000000"),
-	Color("#ff004d"),
-	Color("#ffa300"),
-	Color("#ffec27")
+
+#var particles_colors = [
+#	Color("#ffffff"),
+#	Color("#000000"),
+#	Color("#ff004d"),
+#	Color("#ffa300"),
+#	Color("#ffec27")
+#]
+
+var particles_colors_with_weights = [
+	[4, Color("#ffffff")],
+	[2, Color("#000000")],
+	[8, Color("#ff004d")],
+	[8, Color("#ffa300")],
+	[10, Color("#ffec27")]
 ]
+
 
 var particles_timer
 var particles_timer_wait_time = 1
 
 func _ready():
-	Engine.time_scale = 0.1
 	# Add to a group so it can be found from anywhere.
-	add_to_group("fake_explosion_particles")
+	add_to_group(group_name)
 
 	# Create the initial particles.
 	particles_initial_position = _get_random_position() if get_random_position else position
@@ -78,17 +88,19 @@ func _draw():
 
 func _particles_explode(delta):
 	for particle in particles:
-		randomize()
-		particle.velocity.x *= rand_range(0.9, 1.1)
-		particle.velocity.y *= rand_range(0.9, 1.1)
+		particle.velocity.x *= particle.velocity_increment.x
+		particle.velocity.y *= particle.velocity_increment.y
 		particle.position += (particle.velocity + particle.gravity) * delta
 
-		# Fade out the particles.
-		if particle.color.a > 0:
-			particle.color.a -= particle.alpha * delta
-
-			if particle.color.a < 0:
-				particle.color.a = 0
+		particle.time += delta
+#		print(particle.time)
+		if particle.time > _get_random_time():
+			# Fade out the particles.
+			if particle.color.a > 0:
+				particle.color.a -= particle.alpha * delta
+	
+				if particle.color.a < 0:
+					particle.color.a = 0
 
 		# If the particle is invisible...
 		if particle.color.a == 0:
@@ -112,6 +124,7 @@ func _create_particles():
 			gravity = null,
 			position = particles_initial_position,
 			size = null,
+			time = 0,
 			velocity = null
 		}
 
@@ -121,6 +134,7 @@ func _create_particles():
 		particle.gravity = _get_random_gravity()
 		particle.size = _get_random_size()
 		particle.velocity = _get_random_velocity()
+		particle.velocity_increment = _get_random_velocity_increment()
 
 		# Push the particle to the particles array.
 		particles.push_back(particle)
@@ -128,13 +142,14 @@ func _create_particles():
 
 func _get_random_alpha():
 	randomize()
-	var random_alpha = rand_range(1, 20)
+	var random_alpha = rand_range(2, 10)
 	return random_alpha
 
 
 func _get_random_color():
 	randomize()
-	var random_color = particles_colors[randi() % particles_colors.size()]
+#	var random_color = particles_colors[randi() % particles_colors.size()]
+	var random_color = _rand_array(particles_colors_with_weights)
 	return random_color
 
 
@@ -187,6 +202,36 @@ func _get_random_velocity():
 							)
 						)
 	return random_velocity
+
+
+func _get_random_velocity_increment():
+	randomize()
+	var random_velocity_increment = Vector2(rand_range(0.991, 1.009), rand_range(0.991, 1.009))
+	return random_velocity_increment
+
+
+func _get_random_time():
+	randomize()
+	var random_time = rand_range(0.05, 0.1)
+	return random_time
+
+
+func _rand_array(array):
+	# Code from @CowThing (https://pastebin.com/HhdBuUzT).
+    # Arrays must be [weight, value].
+   
+    var sum_of_weights = 0
+    for t in array:
+        sum_of_weights += t[0]
+   
+    var x = randf() * sum_of_weights
+   
+    var cumulative_weight = 0
+    for t in array:
+        cumulative_weight += t[0]
+       
+        if x < cumulative_weight:
+            return t[1]
 
 
 func _on_timer_timeout():
