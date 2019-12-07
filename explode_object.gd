@@ -165,8 +165,11 @@ func _physics_process(delta):
 	if object.detonate:
 		detonate()
 
-	# Remove the parent node after the last block is gone.
+	# Add a delay of 'delta' before counting the blocks.
+	# Sometimes the last one doesn't get counted.
 	yield(get_tree().create_timer(delta), "timeout")
+
+	# Remove the parent node after the last block is gone.
 	if object.blocks_container.get_child_count() == 0:
 		object.parent.queue_free()
 
@@ -245,8 +248,7 @@ func explosion(delta):
 			child.apply_central_impulse(Vector2(rand_range(-blocks_impulse, blocks_impulse), -blocks_impulse))
 
 		# Add a delay before setting 'object.detonate' to 'false'.
-		# Sometimes, depending on how the explosions are set up,
-		# 'object.detonate' is set to 'false' so quickly that the explosion never happens.
+		# Sometimes 'object.detonate' is set to 'false' so quickly that the explosion never happens.
 		# If this happens, try setting 'explosion_delay' to 'true'.
 		if explosion_delay: yield(get_tree().create_timer(delta), "timeout")
 
