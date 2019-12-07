@@ -18,19 +18,53 @@ RigidBody2D
 └── CollisionShape2D
     └── RectangleShape2D
 ```
- 
+
 ## Usage
 
 * Create a `Node2D` that will contain all the destructibles objects (e.g. `destructible_objects`).
-* Add a `Node2D` as a child node of the prior `Node2D` (e.g. `object_01`).
-* Instance the destructible object `Scene` file.
+* Add a `Node2D` as a child node of the prior `Node2D` (e.g. `destructible_object_01`).
+* Instance the `destructible_object` scene file.
 * Attach `explode_object.gd` to the destructible object as a `Script`.
 
 ![Godot-3-2D-Destructible-Objects-Tree](examples/tree.png)
 
-The reason for organizing it this way is because then you can add particles (`Partcicles2D` or `CPUParticles2D`) or hitboxes (`Area2D`) or whatever you feel like to the `Node2D` (e.g. `object_01`) holding the main `RigidBody2D` and you can then use this script to control those nodes.
+The reason for organizing it this way is because then you can add particles (`Partcicles2D` or `CPUParticles2D`), fake particles (like the ones provided with this project), hitboxes (`Area2D`) or whatever you feel like to the `Node2D` (e.g. `destructible_object_01`) holding the main `RigidBody2D` and you can then use this script to control those nodes.
+
+Of course, you can recreate that tree in GDSscript, with something like this:
+
+```
+var node = Node2D.new()
+node.name = "destructible_container"
+get_parent().add_child(node, true)
+
+var rigid_body = RigidBody2D.new()
+rigid_body.name = "destructible_object"
+
+var sprite = Sprite.new()
+# Set the sprite's texture, size, etc.
+sprite.texture = preload("res://path/to/texture.png")
+...
+
+var collision = CollisionShape2D.new()
+collision.shape = RectangleShape2D.new()
+collision.shape.extents = Vector2(..., ...)
+
+rigid_body.add_child(sprite, true)
+rigid_body.add_child(collision, true)
+
+var script = preload("res://path/to/explode_object.gd")
+rigid_body.set_script(script)
+
+# Here you can set the 'rigid_body' variables from the script.
+rigid_body.blocks_per_side = ...
+rigid_body.blocks_impulse = ...
+
+node.add_child(rigid_body, true)
+```
 
 ## Parameters
+
+![Godot-3-2D-Destructible-Objects-Parameters](examples/parameters.png)
 
 ### Blocks Per Side
 
@@ -56,7 +90,7 @@ The reason for organizing it this way is because then you can add particles (`Pa
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `debris_max_time` | `float` | The seconds it will pass until the blocks become `STATIC` or, if `remove_debris` is set to `true`, the blocks dissapear. |
+| `debris_max_time` | `float` | The seconds it will pass until the blocks become `STATIC` or, if `remove_debris` is set to `true`, they dissapear. |
 
 ### Remove debris
 
@@ -84,13 +118,27 @@ Sum all the values of the layers.
 
 **Example**: `Layer 1` value is `1`. `Layer 5` value is `16`. So `collision_layers` would be `17`.
 
+### Explosion delay
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `explosion_delay` | `bool` |  Adds a delay of before setting `object.detonate` to `false`. |
+
+Sometimes `object.detonate` is set to `false` so quickly that the explosion never happens. If this happens, try setting `explosion_delay` to `true`.
+
+### Fake explosions group
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `fake_explosions_group` | `String` |  Renames the group's name of the fake explosion particles. |
+
+This project provides an extra script for creating fake explosion particles........
+
 ### Debug mode
 
 | Name | Type | Description |
 | --- | --- | --- |
 | `debug_mode` | `bool` |  Prints some debug data. |
-
-![Godot-3-2D-Destructible-Objects-Parameters](examples/parameters.png)
 
 ## Changelog
 
