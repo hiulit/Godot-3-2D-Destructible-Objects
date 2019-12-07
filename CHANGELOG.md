@@ -8,9 +8,9 @@
 
 ### Added
 
+* Fake particles to simulate an explosion.
 * New parameter: `explosion_delay` - Adds a delay of `delta` before setting `object.detonate` to `false`.
-* Remove the parent node after the last block is gone (for better performance).
-* Remove the `self` element when it's not needed it anymore (for better performance).
+* New parameter: `fake_explosions_group` - To control the group's name of the fake explosion particles. 
 * Better debugging.
 
 ### Changed
@@ -18,6 +18,11 @@
 * `PackedScene.new()` for `duplicate()`.
 * `apply_impulse()` for `apply_central_impulse`.
 * Default settings to be consistent with the new `apply_central_impulse()` function.
+
+### Fixed
+
+* Remove the parent node after the last block is gone (for better performance).
+* Remove the `self` element when it's not needed it anymore (for better performance).
 
 ### Removed
 
