@@ -34,6 +34,7 @@ var particles_timer
 var particles_timer_wait_time = 1
 
 func _ready():
+	Engine.time_scale = 0.1
 	# Add to a group so it can be found from anywhere.
 	add_to_group("fake_explosion_particles")
 
@@ -77,8 +78,9 @@ func _draw():
 
 func _particles_explode(delta):
 	for particle in particles:
-		particle.velocity.x *= 1
-		particle.velocity.y *= 1
+		randomize()
+		particle.velocity.x *= rand_range(0.9, 1.1)
+		particle.velocity.y *= rand_range(0.9, 1.1)
 		particle.position += (particle.velocity + particle.gravity) * delta
 
 		# Fade out the particles.
@@ -126,7 +128,7 @@ func _create_particles():
 
 func _get_random_alpha():
 	randomize()
-	var random_alpha = rand_range(1, 10)
+	var random_alpha = rand_range(1, 20)
 	return random_alpha
 
 
