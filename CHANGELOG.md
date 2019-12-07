@@ -10,7 +10,7 @@
 
 * Fake particles to simulate an explosion.
 * New parameter: `explosion_delay` - Adds a delay of `delta` before setting `object.detonate` to `false`.
-* New parameter: `fake_explosions_group` - To control the group's name of the fake explosion particles. 
+* New parameter: `fake_explosions_group` - To rename the group's name of the fake explosion particles. 
 * Better debugging.
 
 ### Changed
