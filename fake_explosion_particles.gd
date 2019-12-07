@@ -34,7 +34,6 @@ var particles_timer
 var particles_timer_wait_time = 1
 
 func _ready():
-	Engine.time_scale = 0.5
 	# Add to a group so it can be found from anywhere.
 	add_to_group("fake_explosion_particles")
 
