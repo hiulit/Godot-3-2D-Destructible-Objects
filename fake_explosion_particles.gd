@@ -1,36 +1,29 @@
 extends Node2D
 
-export (int) var min_particles_number = 400
+export (int) var min_particles_number = 200
 export (int) var max_particles_number = 400
 
-export (float) var min_particles_gravity = 200
-export (float) var max_particles_gravity = 600
+export (float) var min_particles_gravity = 200.0
+export (float) var max_particles_gravity = 600.0
 
-export (float) var min_particles_velocity = 200
-export (float) var max_particles_velocity = 600
+export (float) var min_particles_velocity = 200.0
+export (float) var max_particles_velocity = 600.0
 
 export (int) var max_particles_position_x = ProjectSettings.get_setting("display/window/size/width")
 export (int) var max_particles_position_y = ProjectSettings.get_setting("display/window/size/height")
 
-export (int) var min_particles_size = 2
-export (int) var max_particles_size = 6
+export (int) var min_particles_size = 1
+export (int) var max_particles_size = 4
 
 export (bool) var get_random_position = false
 export (bool) var start_timer = false
+export (float) var timer_wait_time = 1.0
 export (bool) var particles_explode = false
 export (String) var group_name = "fake_explosion_particles"
 
 var particles = []
 var particles_number
 var particles_initial_position
-
-#var particles_colors = [
-#	Color("#ffffff"),
-#	Color("#000000"),
-#	Color("#ff004d"),
-#	Color("#ffa300"),
-#	Color("#ffec27")
-#]
 
 var particles_colors_with_weights = [
 	[4, Color("#ffffff")],
@@ -40,25 +33,21 @@ var particles_colors_with_weights = [
 	[10, Color("#ffec27")]
 ]
 
-
 var particles_timer
-var particles_timer_wait_time = 1
 
 func _ready():
 	# Add to a group so it can be found from anywhere.
 	add_to_group(group_name)
 
 	# Create the initial particles.
-	particles_initial_position = _get_random_position() if get_random_position else position
-	particles_number = _get_random_number()
 	_create_particles()
 
 	# Create a timer.
 	particles_timer = Timer.new()
 	particles_timer.one_shot = false
-	particles_timer.wait_time = particles_timer_wait_time
+	particles_timer.wait_time = timer_wait_time
 	particles_timer.set_timer_process_mode(1)
-	particles_timer.connect("timeout", self, "_on_timer_timeout")
+	particles_timer.connect("timeout", self, "_on_particles_timer_timeout")
 
 	add_child(particles_timer, true)
 
@@ -76,7 +65,7 @@ func _process(delta):
 		update()
 
 	# If there are no particles in the particles array, free the node.
-	if particles.size() == 0:
+	if particles.size() == 0 and not start_timer:
 		queue_free()
 
 
@@ -93,7 +82,7 @@ func _particles_explode(delta):
 		particle.position += (particle.velocity + particle.gravity) * delta
 
 		particle.time += delta
-#		print(particle.time)
+
 		if particle.time > _get_random_time():
 			# Fade out the particles.
 			if particle.color.a > 0:
@@ -113,6 +102,13 @@ func _particles_explode(delta):
 
 
 func _create_particles():
+	# Set the node's position to (0,0) to get proper random position values.
+	if get_random_position: position = Vector2.ZERO
+
+	# Set initial values.
+	particles_initial_position = _get_random_position() if get_random_position else Vector2.ZERO
+	particles_number = _get_random_number()
+
 	# Empty the particles array.
 	particles.clear()
 
@@ -148,7 +144,6 @@ func _get_random_alpha():
 
 func _get_random_color():
 	randomize()
-#	var random_color = particles_colors[randi() % particles_colors.size()]
 	var random_color = _rand_array(particles_colors_with_weights)
 	return random_color
 
@@ -218,24 +213,22 @@ func _get_random_time():
 
 func _rand_array(array):
 	# Code from @CowThing (https://pastebin.com/HhdBuUzT).
-    # Arrays must be [weight, value].
-   
-    var sum_of_weights = 0
-    for t in array:
-        sum_of_weights += t[0]
-   
-    var x = randf() * sum_of_weights
-   
-    var cumulative_weight = 0
-    for t in array:
-        cumulative_weight += t[0]
-       
-        if x < cumulative_weight:
-            return t[1]
+	# Arrays must be [weight, value].
+
+	var sum_of_weights = 0
+	for t in array:
+		sum_of_weights += t[0]
+
+	var x = randf() * sum_of_weights
+
+	var cumulative_weight = 0
+	for t in array:
+		cumulative_weight += t[0]
+ 
+		if x < cumulative_weight:
+			return t[1]
 
 
-func _on_timer_timeout():
+func _on_particles_timer_timeout():
 	# Create new particles every time the timer times out.
-	particles_initial_position = _get_random_position() if get_random_position else position
-	particles_number = _get_random_number()
 	_create_particles()
