@@ -8,8 +8,8 @@
 
 ### Added
 
-* Fake particles to simulate an explosion.
-* New parameter: `explosion_delay` - Adds a delay of `delta` before setting `object.detonate` to `false`.
+* [Fake particles](https://github.com/hiulit/Godot-3-2D-Fake-Explosion-Particles) to simulate an explosion.
+* New parameter: `explosion_delay` - Adds a delay of before setting `object.detonate` to `false`.
 * New parameter: `fake_explosions_group` - To rename the group's name of the fake explosion particles. 
 * Better debugging.
 
