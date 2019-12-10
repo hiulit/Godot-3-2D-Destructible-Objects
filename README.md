@@ -132,7 +132,7 @@ Sometimes `object.detonate` is set to `false` so quickly that the explosion neve
 | --- | --- | --- |
 | `fake_explosions_group` | `String` |  Renames the group's name of the fake explosion particles. |
 
-This project provides an extra script for creating fake explosion particles........
+This project provides an extra script for creating [fake explosion particles](https://github.com/hiulit/Godot-3-2D-Fake-Explosion-Particles). That script uses a group name to be able to find the fake explosion particles more easily.
 
 ### Debug mode
 
