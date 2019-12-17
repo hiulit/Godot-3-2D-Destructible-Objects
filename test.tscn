@@ -95,6 +95,7 @@ scale = Vector2( 1.5, 1.5 )
 [node name="fake_explosion_particles" parent="destructible_objects/destructible_object_01" instance=ExtResource( 4 )]
 
 [node name="destructible_object_02" type="Node2D" parent="destructible_objects"]
+editor/display_folded = true
 position = Vector2( 220, 240 )
 __meta__ = {
 "_edit_group_": true
@@ -110,6 +111,7 @@ scale = Vector2( 1.5, 1.5 )
 [node name="fake_particles" parent="destructible_objects/destructible_object_02" instance=ExtResource( 4 )]
 
 [node name="destructible_object_03" type="Node2D" parent="destructible_objects"]
+editor/display_folded = true
 position = Vector2( 800, 87 )
 __meta__ = {
 "_edit_group_": true
