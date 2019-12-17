@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-* Up to date
+### Added
+
+* New parameter: `randomize_seed` - To let the user randomize the seed, or not. Default is set to false.
 
 ## [1.2.0] - 2019-12-05
 

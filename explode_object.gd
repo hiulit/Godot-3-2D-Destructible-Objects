@@ -9,6 +9,7 @@ export (int) var collision_layers = 1
 export (int) var collision_masks = 1
 export (bool) var explosion_delay = false
 export (String) var fake_explosions_group = "fake_explosion_particles"
+export (bool) var randomize_seed = false
 export (bool) var debug_mode = false
 
 var object = {}
@@ -46,7 +47,7 @@ func _ready():
 	object.blocks_container.name = self.name + "_blocks_container"
 
 	# Randomize the seed of the random number generator.
-	randomize()
+	if randomize_seed: randomize()
 
 	if not self is RigidBody2D:
 		print("ERROR: The '%s' node must be a 'RigidBody2D'" % self.name)
