@@ -68,41 +68,41 @@ node.add_child(rigid_body, true)
 
 ### Blocks Per Side
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `blocks_per_side` | `int` | The blocks per side. Minium `2`. Maximum `10`. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `blocks_per_side` | `int` | The blocks per side. Minium `2`. Maximum `10` (for performance reasons). | `6` |
 
  **Example**: `4` block per side makes a total of `16` blocks.
 
 ### Blocks Impulse
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `blocks_impulse` | `float` | The "force" of the blocks when they explode. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `blocks_impulse` | `float` | The *force* of the blocks when they explode. | `600` |
 
 ### Blocks Gravity Scale
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `blocks_gravity_scale` | `float` | The gravity of the blocks. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `blocks_gravity_scale` | `float` | The gravity of the blocks. | `10` |
 
 ### Debris max time
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `debris_max_time` | `float` | The seconds it will pass until the blocks become `STATIC` or, if `remove_debris` is set to `true`, they dissapear. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `debris_max_time` | `float` | The seconds it will pass until the blocks become `STATIC` or, if `remove_debris` is set to `true`, they dissapear. | `5` |
 
 ### Remove debris
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `remove_debris` | `bool` | Controls whether the debris stays or disappears. If set to `true`, the debris will dissapear when `debris_max_time` is over. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `remove_debris` | `bool` | Controls whether the debris stays or disappears. If set to `true`, the debris will dissapear when `debris_max_time` is over. | `false` |
 
 ### Collision layers
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `collision_layers` | `int` | The collision layers of the blocks. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `collision_layers` | `int` | The collision layers of the blocks. | `1` |
 
 Sum all the values of the layers.
 
@@ -110,41 +110,47 @@ Sum all the values of the layers.
 
 ### Collision masks
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `collision_masks` | `int` |  The collision masks of the blocks. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `collision_masks` | `int` | The collision masks of the blocks. | `1` |
 
 Sum all the values of the layers.
 
 **Example**: `Layer 1` value is `1`. `Layer 5` value is `16`. So `collision_layers` would be `17`.
 
+### Collision one way
+
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `collision_one_way` | `bool` | Set `one_way_collision` for the blocks. | `false` |
+
 ### Explosion delay
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `explosion_delay` | `bool` |  Adds a delay of before setting `object.detonate` to `false`. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `explosion_delay` | `bool` | Adds a delay of before setting `object.detonate` to `false`. | `false` |
 
 Sometimes `object.detonate` is set to `false` so quickly that the explosion never happens. If this happens, try setting `explosion_delay` to `true`.
 
 ### Fake explosions group
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `fake_explosions_group` | `String` |  Renames the group's name of the fake explosion particles. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `fake_explosions_group` | `String` |  Renames the group's name of the fake explosion particles. | `fake_explosion_particles` |
 
 This project provides an extra script for creating [fake explosion particles](https://github.com/hiulit/Godot-3-2D-Fake-Explosion-Particles). That script uses a group name to be able to find the fake explosion particles more easily.
 
 ### Randomize seed
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `randomize_seed` | `bool` |  Randomize the seed. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `randomize_seed` | `bool` |  Randomize the seed. | `false` |
 
 ### Debug mode
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `debug_mode` | `bool` |  Prints some debug data. |
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `debug_mode` | `bool` |  Prints some debug data. | `false` |
 
 ## Changelog
 
