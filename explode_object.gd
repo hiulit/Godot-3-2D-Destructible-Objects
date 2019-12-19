@@ -15,6 +15,9 @@ export (bool) var debug_mode = false
 
 var object = {}
 
+var explosion_delay_timer = 0
+var explosion_delay_timer_limit = 0
+
 func _ready():
 	object = {
 		blocks = [],
@@ -171,14 +174,22 @@ func _physics_process(delta):
 	if object.detonate:
 		detonate()
 
-	# Add a delay of 'delta' before counting the blocks.
-	# Sometimes the last one doesn't get counted.
-	yield(get_tree().create_timer(delta), "timeout")
-
-	# Remove the parent node after the last block is gone.
-	if object.blocks_container.get_child_count() == 0:
-		object.parent.queue_free()
 	if object.has_detonated:
+		# Add a delay of 'delta' before counting the blocks.
+		# Sometimes the last one doesn't get counted.
+		if explosion_delay:
+	#		yield(get_tree().create_timer(delta), "timeout")
+			explosion_delay_timer_limit = delta
+			explosion_delay_timer += delta
+			if explosion_delay_timer > explosion_delay_timer_limit:
+				explosion_delay_timer -= explosion_delay_timer_limit
+				# Remove the parent node after the last block is gone.
+				if object.blocks_container.get_child_count() == 0:
+					object.parent.queue_free()
+		else:
+			# Remove the parent node after the last block is gone.
+			if object.blocks_container.get_child_count() == 0:
+				object.parent.queue_free()
 
 
 func _integrate_forces(state):
@@ -258,10 +269,15 @@ func explosion(delta):
 		# Add a delay before setting 'object.detonate' to 'false'.
 		# Sometimes 'object.detonate' is set to 'false' so quickly that the explosion never happens.
 		# If this happens, try setting 'explosion_delay' to 'true'.
-		if explosion_delay: yield(get_tree().create_timer(delta), "timeout")
-
-		object.detonate = false
-
+		if explosion_delay:
+#			yield(get_tree().create_timer(delta), "timeout")
+			explosion_delay_timer_limit = delta
+			explosion_delay_timer += delta
+			if explosion_delay_timer > explosion_delay_timer_limit:
+				explosion_delay_timer -= explosion_delay_timer_limit
+				object.detonate = false
+		else:
+			object.detonate = false
 
 func _on_debris_timer_timeout():
 	if debug_mode: print("'%s' object's debris timer (%ss) timed out!" % [self.name, debris_max_time])
