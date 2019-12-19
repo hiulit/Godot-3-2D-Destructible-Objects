@@ -7,6 +7,7 @@ export (float) var debris_max_time = 5
 export (bool) var remove_debris = false
 export (int) var collision_layers = 1
 export (int) var collision_masks = 1
+export (bool) var collision_one_way = false
 export (bool) var explosion_delay = false
 export (String) var fake_explosions_group = "fake_explosion_particles"
 export (bool) var randomize_seed = false
@@ -26,6 +27,7 @@ func _ready():
 		collision_layers = collision_layers,
 		collision_masks = collision_masks,
 		collision_name = null,
+		collision_one_way = collision_one_way,
 		collision_position = Vector2(),
 		debris_max_time = debris_max_time,
 		debris_timer = Timer.new(),
@@ -138,6 +140,8 @@ func _ready():
 		object.blocks[n].get_node(object.sprite_name).frame = n
 		object.blocks[n].get_node(object.collision_name).shape = shape
 		object.blocks[n].get_node(object.collision_name).position = object.collision_position
+
+		if object.collision_one_way: object.blocks[n].get_node(object.collision_name).one_way_collision = true
 
 		if debug_mode: object.blocks[n].modulate = Color(rand_range(0, 1), rand_range(0, 1), rand_range(0, 1), 0.9)
 
