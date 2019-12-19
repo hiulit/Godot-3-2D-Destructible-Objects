@@ -178,7 +178,10 @@ func _physics_process(delta):
 		# Add a delay of 'delta' before counting the blocks.
 		# Sometimes the last one doesn't get counted.
 		if explosion_delay:
-	#		yield(get_tree().create_timer(delta), "timeout")
+			# Removed the yield timer because it was throwing
+			# 'Resumed after yield, but class instance is gone' errors
+			# when freeing the blocks.
+			# yield(get_tree().create_timer(delta), "timeout")
 			explosion_delay_timer_limit = delta
 			explosion_delay_timer += delta
 			if explosion_delay_timer > explosion_delay_timer_limit:
@@ -270,7 +273,10 @@ func explosion(delta):
 		# Sometimes 'object.detonate' is set to 'false' so quickly that the explosion never happens.
 		# If this happens, try setting 'explosion_delay' to 'true'.
 		if explosion_delay:
-#			yield(get_tree().create_timer(delta), "timeout")
+			# Removed the yield timer because it was throwing
+			# 'Resumed after yield, but class instance is gone' errors
+			# when freeing the blocks.
+			# yield(get_tree().create_timer(delta), "timeout")
 			explosion_delay_timer_limit = delta
 			explosion_delay_timer += delta
 			if explosion_delay_timer > explosion_delay_timer_limit:
@@ -289,7 +295,7 @@ func _on_debris_timer_timeout():
 			child.set_mode(MODE_STATIC)
 			child.get_node(object.collision_name).disabled = true
 
-			# Remove the self element as we don't need it anymore.
+			# Remove the self element as we don't need it anymore.
 			self.queue_free()
 		else:
 			var color_r = child.modulate.r
