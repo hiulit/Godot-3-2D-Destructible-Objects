@@ -33,6 +33,7 @@ func _ready():
 		debris_timer = Timer.new(),
 		detonate = false,
 		frame = 0,
+		has_detonated = false,
 		has_particles = false,
 		height = 0,
 		hframes = 1,
@@ -177,6 +178,7 @@ func _physics_process(delta):
 	# Remove the parent node after the last block is gone.
 	if object.blocks_container.get_child_count() == 0:
 		object.parent.queue_free()
+	if object.has_detonated:
 
 
 func _integrate_forces(state):
@@ -197,6 +199,7 @@ func add_children(object):
 
 func detonate():
 	object.can_detonate = false
+	object.has_detonated = true
 
 	# Check if the parent node has particles as a child.
 	for child in object.parent.get_children():
