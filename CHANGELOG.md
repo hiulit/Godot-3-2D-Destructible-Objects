@@ -4,7 +4,13 @@
 
 ### Added
 
-* New parameter: `randomize_seed` - To let the user randomize the seed, or not. Default is set to false.
+* New parameter: `randomize_seed` - To let the user randomize the seed, or not. Default is set to `false`.
+* New parameter: `collision_one_way` - To set `one_way_collision` to the blocks. Default is set to `false`.
+
+### Changed
+
+* `yield(get_tree().create_timer(time), timeout)` function for a manually created timer because it was throwing `Resumed after yield, but class instance is gone` errors when freeing the blocks.
+
 
 ## [1.2.0] - 2019-12-05
 
