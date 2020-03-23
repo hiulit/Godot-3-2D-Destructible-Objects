@@ -11,10 +11,8 @@ extents = Vector2( 372, 33 )
 [node name="test" type="Node2D"]
 
 [node name="walls" type="Node2D" parent="."]
-editor/display_folded = true
 
 [node name="wall_01" type="StaticBody2D" parent="walls"]
-editor/display_folded = true
 __meta__ = {
 "_edit_group_": true
 }
@@ -24,7 +22,6 @@ position = Vector2( 481, 570 )
 shape = SubResource( 1 )
 
 [node name="wall_02" type="StaticBody2D" parent="walls"]
-editor/display_folded = true
 position = Vector2( 0, 30 )
 __meta__ = {
 "_edit_group_": true
@@ -35,7 +32,6 @@ position = Vector2( -15, 307 )
 shape = SubResource( 1 )
 
 [node name="wall_03" type="StaticBody2D" parent="walls"]
-editor/display_folded = true
 position = Vector2( 13, 54 )
 __meta__ = {
 "_edit_group_": true
@@ -46,7 +42,6 @@ position = Vector2( 1007, 130 )
 shape = SubResource( 1 )
 
 [node name="wall_04" type="StaticBody2D" parent="walls"]
-editor/display_folded = true
 __meta__ = {
 "_edit_group_": true
 }
@@ -57,7 +52,6 @@ rotation = 1.57079
 shape = SubResource( 1 )
 
 [node name="wall_05" type="StaticBody2D" parent="walls"]
-editor/display_folded = true
 __meta__ = {
 "_edit_group_": true
 }
@@ -68,7 +62,6 @@ rotation = 1.57079
 shape = SubResource( 1 )
 
 [node name="wall_06" type="StaticBody2D" parent="walls"]
-editor/display_folded = true
 __meta__ = {
 "_edit_group_": true
 }
@@ -95,7 +88,6 @@ scale = Vector2( 1.5, 1.5 )
 [node name="fake_explosion_particles" parent="destructible_objects/destructible_object_01" instance=ExtResource( 4 )]
 
 [node name="destructible_object_02" type="Node2D" parent="destructible_objects"]
-editor/display_folded = true
 position = Vector2( 220, 240 )
 __meta__ = {
 "_edit_group_": true
@@ -111,7 +103,6 @@ scale = Vector2( 1.5, 1.5 )
 [node name="fake_particles" parent="destructible_objects/destructible_object_02" instance=ExtResource( 4 )]
 
 [node name="destructible_object_03" type="Node2D" parent="destructible_objects"]
-editor/display_folded = true
 position = Vector2( 800, 87 )
 __meta__ = {
 "_edit_group_": true
