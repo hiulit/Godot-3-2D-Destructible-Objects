@@ -199,11 +199,11 @@ func _integrate_forces(state):
 	explosion(state.step)
 
 
-func add_children(object):
-	for i in range(object.blocks.size()):
-		object.blocks_container.add_child(object.blocks[i], true)
+func add_children(child_object):
+	for i in range(child_object.blocks.size()):
+		child_object.blocks_container.add_child(child_object.blocks[i], true)
 
-	object.parent.add_child(object.blocks_container, true)
+	child_object.parent.add_child(child_object.blocks_container, true)
 
 	# Move the self element faaaar away, instead of removing it,
 	# so we can still use the script and its functions.
@@ -317,5 +317,5 @@ func _on_debris_timer_timeout():
 			opacity_tween.start()
 
 
-func _on_opacity_tween_completed(obj, key):
+func _on_opacity_tween_completed(obj, _key):
 	obj.queue_free()
