@@ -176,7 +176,7 @@ func _physics_process(delta):
 		# This is what triggers the explosion, setting 'object.detonate' to 'true'.
 		object.detonate = true
 
-	if object.detonate:
+	if object.can_detonate and object.detonate:
 		detonate()
 
 	if object.has_detonated:
