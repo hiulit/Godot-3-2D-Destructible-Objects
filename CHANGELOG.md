@@ -6,10 +6,16 @@
 
 * New parameter: `randomize_seed` - To let the user randomize the seed, or not. Default is set to `false`.
 * New parameter: `collision_one_way` - To set `one_way_collision` to the blocks. Default is set to `false`.
+* Each block now has a different mass depending on its size.
+* Set a maximum of 10 block per side.
 
 ### Changed
 
 * `yield(get_tree().create_timer(time), timeout)` function for a manually created timer because it was throwing `Resumed after yield, but class instance is gone` errors when freeing the blocks.
+
+### Fixed
+
+* Check if `object.can_detenate` before actually detonating.
 
 
 ## [1.2.0] - 2019-12-05
