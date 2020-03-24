@@ -72,6 +72,11 @@ func _ready():
 		object.can_detonate = false
 		return
 
+	if object.blocks_per_side > 10:
+		print("ERROR: Too many blocks in '%s'! The maximum is 10 blocks per side." % self.name)
+		object.can_detonate = false
+		return
+
 	if object.blocks_per_side % 2 != 0:
 		print("ERROR: 'blocks_per_side' in '%s' must be an even number!" % self.name)
 		object.can_detonate = false
