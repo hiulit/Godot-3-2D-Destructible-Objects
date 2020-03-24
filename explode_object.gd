@@ -242,6 +242,8 @@ func detonate():
 		child.get_node(object.sprite_name).scale = Vector2(child_scale, child_scale)
 		child.get_node(object.collision_name).scale = Vector2(child_scale, child_scale)
 
+		child.mass = child_scale
+
 		child.set_collision_layer(0 if randf() < 0.5 else object.collision_layers)
 		child.set_collision_mask(0 if randf() < 0.5 else object.collision_masks)
 
@@ -289,6 +291,7 @@ func explosion(delta):
 				object.detonate = false
 		else:
 			object.detonate = false
+
 
 func _on_debris_timer_timeout():
 	if debug_mode: print("'%s' object's debris timer (%ss) timed out!" % [self.name, debris_max_time])
