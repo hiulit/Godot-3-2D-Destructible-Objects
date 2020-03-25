@@ -6,7 +6,7 @@ A script that takes a sprite, divides it into blocks and makes them explode 💥
 
 ## Limitations
 
-Right now, the sprites must be square for this script to work properly.
+Right now, the sprites must be squares or rectangles for this script to work properly.
 
 ## Prerequisites
 
