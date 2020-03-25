@@ -19,7 +19,6 @@
 
 * Check if `object.can_detenate` before actually detonating.
 
-
 ## [1.2.0] - 2019-12-05
 
 ### Added
