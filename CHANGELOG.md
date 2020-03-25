@@ -9,7 +9,7 @@
 * New parameter: `randomize_seed` - To let the user randomize the seed, or not. Default is set to `false`.
 * New parameter: `collision_one_way` - To set `one_way_collision` to the blocks. Default is set to `false`.
 * Each block now has a different mass depending on its size.
-* Set a maximum of 10 block per side.
+* Set a maximum of 10 blocks per side.
 
 ### Changed
 
