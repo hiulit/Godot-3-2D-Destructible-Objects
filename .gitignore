@@ -1,5 +1,7 @@
 *.DS_Store
 examples/*.import
+test/
+test_assets/
 
 # Godot-specific ignores
 .import/
