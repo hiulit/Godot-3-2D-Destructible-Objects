@@ -4,13 +4,9 @@ A script that takes a sprite, divides it into blocks and makes them explode 💥
 
 ![Godot-3-2D-Destructible-Objects](examples/Godot-3-2D-Destructible-Objects.gif)
 
-## Limitations
-
-Right now, the sprites must be squares or rectangles for this script to work properly.
-
 ## Prerequisites
 
-Each destructible object must follow this structure and must be its own `Scene` file.
+Each destructible object must follow the structure shown below. It can be its own `Scene` file.
 
 ```
 RigidBody2D
@@ -19,22 +15,29 @@ RigidBody2D
     └── RectangleShape2D
 ```
 
+
 ## Usage
 
-* Create a `Node2D` that will contain all the destructibles objects (e.g. `destructible_objects`).
-* Add a `Node2D` as a child node of the prior `Node2D` (e.g. `destructible_object_01`).
-* Instance the `destructible_object` scene file.
-* Attach `explode_object.gd` to the destructible object as a `Script`.
+* Create a `Node2D` that will contain all the destructibles objects (e.g. `destructible_objects_container`). *Optional step.*
+* Create a `Node2D` as a child node of the prior container node (e.g. `destructible_object_01`).
+* Instance the `destructible_object` scene file or recreate the structure show above, in the [prerequisites](#prerequisites).
+* Attach `destructible_object.gd` to the destructible object (the `RigidBody2D`) as a `Script`.
+
+**IMPORTANT NOTE**
+
+If you are using an xxxxxx...........
 
 ![Godot-3-2D-Destructible-Objects-Tree](examples/tree.png)
 
 The reason for organizing it this way is because then you can add particles (`Partcicles2D` or `CPUParticles2D`), fake particles (like the ones provided with this project), hitboxes (`Area2D`) or whatever you feel like to the `Node2D` (e.g. `destructible_object_01`) holding the main `RigidBody2D` and you can then use this script to control those nodes.
 
-Of course, you can recreate that tree in GDSscript, with something like this:
+But the mininum requirements are the structure shown in the [prerequisites](#prerequisites), plus attaching the `destructible_object.gd` script to the ``RigidBody2D`.
+
+Of course, you can recreate that structure in GDScript, with something like this:
 
 ```
 var node = Node2D.new()
-node.name = "destructible_container"
+node.name = "destructible_objects_container"
 get_parent().add_child(node, true)
 
 var rigid_body = RigidBody2D.new()
@@ -52,7 +55,7 @@ collision.shape.extents = Vector2(..., ...)
 rigid_body.add_child(sprite, true)
 rigid_body.add_child(collision, true)
 
-var script = preload("res://path/to/explode_object.gd")
+var script = preload("res://path/to/destructible_object.gd")
 rigid_body.set_script(script)
 
 # Here you can set the 'rigid_body' variables from the script.
@@ -62,25 +65,45 @@ rigid_body.blocks_impulse = ...
 node.add_child(rigid_body, true)
 ```
 
+### Make the objects explode
+
+Once you have set up all the destructible objects, it's time to make them explode!
+
+To do that, you just have to find the destructible object you want to destroy and set its `object.detonate` property to `true`.
+
+You can make use of the `object_group` variable, which adds each destructible object to its own group, to find them:
+
+```
+for destructible_object in get_tree().get_nodes_in_group("destructible_objects"):
+    if destructible_object.object.can_detonate:
+        destructible_object.object.detonate = true
+```
+
 ## Parameters
 
 ![Godot-3-2D-Destructible-Objects-Parameters](examples/parameters.png)
 
-### Blocks Per Side
+### Object group
 
 | Name | Type | Description | Default |
 | --- | --- | --- | --- |
-| `blocks_per_side` | `int` | The blocks per side. Minium `2`. Maximum `10` (for performance reasons). | `6` |
+| `object_group` | `String` |  Renames the group's name of the object. | `destructible_objects` |
 
- **Example**: `4` block per side makes a total of `16` blocks.
+### Blocks per side
 
-### Blocks Impulse
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `blocks_per_side` | `Vector2` | The blocks per side. | `Vector2(6, 6)` |
+
+Each value must be a positive integer.
+
+### Blocks impulse
 
 | Name | Type | Description | Default |
 | --- | --- | --- | --- |
 | `blocks_impulse` | `float` | The *force* of the blocks when they explode. | `600` |
 
-### Blocks Gravity Scale
+### Blocks gravity scale
 
 | Name | Type | Description | Default |
 | --- | --- | --- | --- |
@@ -164,10 +187,10 @@ See [CHANGELOG](CHANGELOG.md).
 
 Thanks to:
 
-* Airvikar - For this [Youtube video](https://www.youtube.com/watch?v=ExX7Qyldtfg) that is the code base for this script.
-* [Securas](https://twitter.com/Securas2010) - For all the [great games](https://securas.itch.io/) and [Twitch streams](https://www.twitch.tv/sec_ras/videos?filter=all&sort=time) that give me lots of ideas, and particularly, the destructible objects one.
-* [Scott Lembcke](https://twitter.com/slembcke) - For letting me know about Voronoi regions (which aren't currently available) and helping me with adding more depth to the explosion (random collisions and z-index).
-
+* [Airvikar](https://www.youtube.com/user/Airvikar) - For this [Youtube video](https://www.youtube.com/watch?v=ExX7Qyldtfg), which is the code base for my script.
+* [Securas (@Securas2010)](https://twitter.com/Securas2010) - For all the [great games](https://securas.itch.io/) and [Twitch streams](https://www.twitch.tv/sec_ras/videos?filter=all&sort=time) that give me lots of ideas, and particularly, the destructible objects one.
+* [Scott Lembcke (@slembcke)](https://twitter.com/slembcke) - For letting me know about Voronoi regions (which aren't currently available) and helping me with adding more depth to the explosion (random collisions and z-index).
+* [Justo Delgado (@mrcdk)](https://github.com/mrcdk) - For the code to [create polygons out of images](https://github.com/godotengine/godot/issues/31323#issuecomment-520517893), which I used in my `create_polygon_collision()` function.
 
 ## License
 
