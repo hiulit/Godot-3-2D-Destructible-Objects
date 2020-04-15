@@ -2,6 +2,42 @@
 
 ## Unreleased
 
+**NOTE**: This release may contain breaking changes!
+
+### Addded
+
+* New reset button in `test.tscn` to be able to reset the scene.
+* New script: `test.gd` - To control the new reset button in `test.tscn` along with the input process to detonate the destructible object (removed from `explode_object.gd`).
+* New parameter: `group_name` - To add each destructible oject to its own group.
+* New `object` attributes:
+  * `object.blocks_total` (`blocks_per_side.x` * `blocks_per_side.y`)
+  * `object.color_tween`.
+  * `object.opacity_tween`.
+  * `object.size`. See the [Changed](#changed) section for more information.
+
+### Changed
+
+* `blocks_per_side` is now a `Vector2()`. Its values must be positive integers.
+* `object.width` and `object.height` are now joined into `object.size`.
+
+### Fixed
+
+* The color and opacity tweens are both now added in the `_ready()` functions instead of adding them on the `detonate()` and `_on_debris_timer_timeout()` respectively (for better performance).
+* The debris timer and the opacity tween are now added only if necessary. For the debris timer we check `if debris_max_time > 0` and for the the opacity tween we check for `if object.remove_debris`.
+* Checking for particles (`check_for_particles()`) is now done in the `_ready()` function (for better performance).
+
+### Deprecated
+
+* Input process to detonate the destructible object moved to its own script (`test.gd`).
+* `object.collision_extents`.
+* `object.collision_position`.
+* `object.frame`.
+* `object.height`.
+* `object.hframes`.
+* `object.hvrames`.
+* `object.width`.
+
+
 ## [1.3.0] - 2020-03-25
 
 ### Added
