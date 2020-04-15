@@ -1,6 +1,7 @@
 extends RigidBody2D
 
-export (int, 2, 10, 2) var blocks_per_side = 6
+export (String) var object_group = "destructible_objects"
+export (Vector2) var blocks_per_side = Vector2(6, 6)
 export (float) var blocks_impulse = 600
 export (float) var blocks_gravity_scale = 10
 export (float) var debris_max_time = 5
@@ -15,39 +16,46 @@ export (bool) var debug_mode = false
 
 var object = {}
 
+var debris_timer_name = "debris_timer"
+var opacity_tween_name = "opacity_tween"
+var color_tween_name = "color_tween"
+
+var cover_sprite_name = "cover_sprite"
+
 var explosion_delay_timer = 0
 var explosion_delay_timer_limit = 0
 
 func _ready():
+#	Engine.time_scale = 0.1
 	object = {
 		blocks = [],
 		blocks_container = Node2D.new(),
 		blocks_gravity_scale = blocks_gravity_scale,
 		blocks_impulse = blocks_impulse,
 		blocks_per_side = blocks_per_side,
+		blocks_total = blocks_per_side.x * blocks_per_side.y,
 		can_detonate = true,
-		collision_extents = Vector2(),
 		collision_layers = collision_layers,
 		collision_masks = collision_masks,
 		collision_name = null,
 		collision_one_way = collision_one_way,
-		collision_position = Vector2(),
+		color_tween = Tween.new(),
 		debris_max_time = debris_max_time,
 		debris_timer = Timer.new(),
 		detonate = false,
-		frame = 0,
 		has_detonated = false,
 		has_particles = false,
-		height = 0,
-		hframes = 1,
 		offset = Vector2(),
+		opacity_tween = Tween.new(),
 		parent = get_parent(),
 		particles = null,
 		remove_debris = remove_debris,
+		size = Vector2(),
 		sprite_name = null,
-		vframes = 1,
-		width = 0
 	}
+
+	# Add object to group.
+	add_to_group(object_group)
 	
 	# Add a unique name to 'blocks_container'.
 	object.blocks_container.name = self.name + "_blocks_container"
@@ -55,127 +63,190 @@ func _ready():
 	# Randomize the seed of the random number generator.
 	if randomize_seed: randomize()
 
-	if not self is RigidBody2D:
-		print("ERROR: The '%s' node must be a 'RigidBody2D'" % self.name)
-		object.can_detonate = false
-		return
-
+	# Look for a 'Sprite' and a 'CollisionShape2D' or 'CollisionShape2D'.
 	for child in get_children():
 		if child is Sprite:
 			object.sprite_name = child.name
 
-		if child is CollisionShape2D:
+		if child is CollisionShape2D or child is CollisionPolygon2D:
 			object.collision_name = child.name
 
-	if not object.sprite_name and not object.collision_name:
-		print("ERROR: The 'RigidBody2D' (%s) must contain at least a 'Sprite' and a 'CollisionShape2D'." % self.name)
+	# Check if there is least a 'Sprite' for the script to work properly.
+	if not object.sprite_name:
+		printerr("------------------------------------------------------------------")
+		printerr("ERROR: The '%s' node must contain at least a 'Sprite'!" % self.name)
+		printerr("------------------------------------------------------------------")
 		object.can_detonate = false
+		self.set_mode(MODE_STATIC)
 		return
 
-	if object.blocks_per_side > 10:
-		print("ERROR: Too many blocks in '%s'! The maximum is 10 blocks per side." % self.name)
+	# Check if 'blocks_per_side' values are positive integers.
+	if step_decimals(object.blocks_per_side.x) != 0 or step_decimals(object.blocks_per_side.y) != 0:
+		printerr("---------------------------------------------------------------------------------------------------------------------------------------------")
+		printerr("ERROR: The '%s' node's 'block_per_side' values (%s, %s) must be positive integers!" % [self.name, object.blocks_per_side.x, object.blocks_per_side.y])
+		printerr("---------------------------------------------------------------------------------------------------------------------------------------------")
 		object.can_detonate = false
+		self.set_mode(MODE_STATIC)
 		return
 
-	if object.blocks_per_side % 2 != 0:
-		print("ERROR: 'blocks_per_side' in '%s' must be an even number!" % self.name)
-		object.can_detonate = false
-		return
+	# Set the debris timer, or not.
+	if debris_max_time > 0:
+		object.debris_timer.connect("timeout", self ,"_on_debris_timer_timeout") 
+		object.debris_timer.set_one_shot(true)
+		object.debris_timer.set_wait_time(object.debris_max_time)
+		object.debris_timer.name = debris_timer_name
+		add_child(object.debris_timer, true)
+	else:
+		object.debris_timer = null
 
-	# Set the debris timer.
-	object.debris_timer.connect("timeout", self ,"_on_debris_timer_timeout") 
-	object.debris_timer.set_one_shot(true)
-	object.debris_timer.set_wait_time(object.debris_max_time)
-	object.debris_timer.name = "debris_timer"
-	add_child(object.debris_timer, true)
+	# Set the color tween.
+	object.color_tween.name = color_tween_name
+	add_child(object.color_tween, true)
+
+	# Set the opacity tween, or not.
+	if object.remove_debris:
+		object.opacity_tween.name = opacity_tween_name
+		add_child(object.opacity_tween, true)
+
+	# Check if the object has particles.
+	call_deferred("check_for_particles")
 
 	if debug_mode: print("--------------------------------")
 	if debug_mode: print("Debug mode for '%s'" % self.name)
 	if debug_mode: print("--------------------------------")
 
-	# Use vframes and hframes to divide the sprite.
-	get_node(object.sprite_name).vframes = object.blocks_per_side
-	get_node(object.sprite_name).hframes = object.blocks_per_side
-	object.vframes = get_node(object.sprite_name).vframes
-	object.hframes = get_node(object.sprite_name).hframes
+	if debug_mode: print("blocks per side: ", object.blocks_per_side)
+	if debug_mode: print("total blocks: ", object.blocks_total)
 
-	if debug_mode: print("object's blocks per side: ", object.blocks_per_side)
-	if debug_mode: print("object's total blocks: ", object.blocks_per_side * object.blocks_per_side)
-
-	# Check if the sprite is using 'Region' to get the proper width and height.
+	# Check if the sprite is using 'Region', to get the proper size.
 	if get_node(object.sprite_name).region_enabled:
-		object.width = float(get_node(object.sprite_name).region_rect.size.x)
-		object.height = float(get_node(object.sprite_name).region_rect.size.y)
+		object.size = Vector2(
+			float(get_node(object.sprite_name).region_rect.size.x),
+			float(get_node(object.sprite_name).region_rect.size.y)
+		)
 	else:
-		object.width = float(get_node(object.sprite_name).texture.get_width())
-		object.height = float(get_node(object.sprite_name).texture.get_height())
+		object.size = Vector2(
+			float(get_node(object.sprite_name).texture.get_width()),
+			float(get_node(object.sprite_name).texture.get_height())
+		)
 
-	if debug_mode: print("object's width: ", object.width)
-	if debug_mode: print("object's height: ", object.height)
+	if debug_mode: print("size: ", object.size)
 
 	# Check if the sprite is centered to get the offset.
 	if get_node(object.sprite_name).centered:
-		object.offset = Vector2(object.width / 2, object.height / 2)
+		object.offset = object.size / 2
 
-		if debug_mode: print("object is centered!")
-		if debug_mode: print("object's offset: ", object.offset)
+	if debug_mode: print("offset: ", object.offset)
 
-	object.collision_extents = Vector2((object.width / 2) / object.hframes,\
-										(object.height / 2) / object.vframes)
+	# Create the blocks and set each own properties.
+	# Initiate the loop's index.
+	var i = 0
+	# Loop through all the blocks of each side.
+	for x in range(object.blocks_per_side.x):
+		for y in range(object.blocks_per_side.y):
+			# Create each block by duplicating the object.
+			var block = self.duplicate(8)
+			# Add a unique name to each block.
+			block.name = self.name + "_block_" + str(i)
 
-	if debug_mode: print("object's collision_extents: ", object.collision_extents)
+			# Create a new image texture for each block's sprite.
+			var block_texture = ImageTexture.new()
+			# Set the image texture's position.
+			var block_texture_position = Vector2(
+				x * (object.size.x / object.blocks_per_side.x),
+				y * (object.size.y / object.blocks_per_side.y)
+			)
+			# Set the image texture's size.
+			var block_texture_size = Vector2(
+				object.size.x / object.blocks_per_side.x,
+				object.size.y / object.blocks_per_side.y
+			)
+			# Set the image texture's rect using the previous position and size.
+			var block_texture_rect = Rect2(block_texture_position, block_texture_size)
+			# Create a new texture from the image texture.
+			block_texture.create_from_image(
+				get_node(object.sprite_name).texture.get_data().get_rect(block_texture_rect),
+				0
+			)
+			# Set the new texture to the block's sprite.
+			var block_sprite = block.get_node(object.sprite_name)
+			block_sprite.texture = block_texture
 
-	object.collision_position = Vector2((ceil(object.collision_extents.x) - object.collision_extents.x) * -1,\
-										(ceil(object.collision_extents.y) - object.collision_extents.y) * -1)
+			# Create a new 'CollisionPolygon2D' for each block.
+			create_polygon_collision(block_sprite, block)
+#			call_deferred("create_polygon_collision", block_sprite, block)
 
-	if debug_mode: print("object's collision_position: ", object.collision_position)
+			# Set each block to STATIC mode.
+			block.set_mode(MODE_STATIC)
 
-	# Set each block's properties.
-	for n in range(object.vframes * object.hframes):
-		# Duplicate the object.
-		var duplicated_object = self.duplicate(8)
-		# Add a unique name to each block.
-		duplicated_object.name = self.name + "_block_" + str(n)
-		# Append it to the blocks array.
-		object.blocks.append(duplicated_object)
+			# Put each block to sleep.
+			block.sleeping = true
 
-		# Create a new collision shape for each block.
-		var shape = RectangleShape2D.new()
-		shape.extents = object.collision_extents
+			# Postion each block.
+			block.position = Vector2(
+				block_texture_position.x + position.x - (object.offset.x - (object.offset.x / object.blocks_per_side.x)),
+				block_texture_position.y + position.y - (object.offset.y - (object.offset.y / object.blocks_per_side.y))
+			)
+			# Take the scale into account.
+			block.position *= get_node(object.sprite_name).get_scale()
 
-		object.blocks[n].set_mode(MODE_STATIC)
-		object.blocks[n].get_node(object.sprite_name).vframes = object.vframes
-		object.blocks[n].get_node(object.sprite_name).hframes = object.hframes
-		object.blocks[n].get_node(object.sprite_name).frame = n
-		object.blocks[n].get_node(object.collision_name).shape = shape
-		object.blocks[n].get_node(object.collision_name).position = object.collision_position
+			# Set each block collision's properties.
+			block.set_collision_layer(0 if randf() < 0.5 else object.collision_layers)
+			block.set_collision_mask(0 if randf() < 0.5 else object.collision_masks)
+			if object.collision_one_way: block.get_node(object.collision_name).one_way_collision = true
 
-		if object.collision_one_way: object.blocks[n].get_node(object.collision_name).one_way_collision = true
+			# Add gravity to each block.
+			block.gravity_scale = blocks_gravity_scale
 
-		if debug_mode: object.blocks[n].modulate = Color(rand_range(0, 1), rand_range(0, 1), rand_range(0, 1), 0.9)
+			# Set each block's color tween.
+			var explosion_color = rand_range(100, 200) / 255
+			var block_explosion_color = Color(explosion_color, explosion_color, explosion_color, 1.0)
+			var block_color_tween = block.get_node(color_tween_name)
+			block_color_tween.interpolate_property(
+				block,
+				"modulate", 
+				Color(1.0, 1.0, 1.0, 1.0),
+				block_explosion_color,
+				0.25,
+				Tween.TRANS_LINEAR,
+				Tween.EASE_IN)
 
-	# Position each block in place to create the whole sprite.
-	for x in range(object.hframes):
-		for y in range(object.vframes):
-			object.blocks[object.frame].position = Vector2(\
-				y * (object.width / object.hframes) - object.offset.x + object.collision_extents.x + position.x,\
-				x * (object.height / object.vframes) - object.offset.y + object.collision_extents.y + position.y)
+			# Set each block's opacity tween.
+			if object.remove_debris:
+				var block_color_r = block_explosion_color.r
+				var block_color_g = block_explosion_color.g
+				var block_color_b = block_explosion_color.b
+				var block_color_a = block_explosion_color.a
+				var block_opacity_tween = block.get_node(opacity_tween_name)
+				block_opacity_tween.connect("tween_completed", self, "_on_opacity_tween_completed")
+				block_opacity_tween.interpolate_property(
+					block,
+					"modulate", 
+					Color(block_color_r, block_color_g, block_color_b, block_color_a),
+					Color(block_color_r, block_color_g, block_color_b, 0.0),
+					rand_range(0.0, 1.0),
+					Tween.TRANS_LINEAR,
+					Tween.EASE_IN)
 
-			if debug_mode: print("object[", object.frame, "] position: ", object.blocks[object.frame].position)
+			# Set each block's 'z_index'.
+			block.z_index = 0 if randf() < 0.5 else -1
 
-			object.frame += 1
+			if debug_mode: block.modulate = Color(rand_range(0, 1), rand_range(0, 1), rand_range(0, 1), 0.9)
 
-	call_deferred("add_children", object)
+#			if debug_mode: print("object[", n, "] position: ", block.position)
+
+			# Add each block to the blocks container.
+			object.blocks_container.add_child(block, true)
+
+			# Update the index.
+			i += 1
+
+	call_deferred("add_blocks", object)
 
 	if debug_mode: print("--------------------------------")
 
 
 func _physics_process(delta):
-	if Input.is_key_pressed(KEY_Q) and object.can_detonate or \
-		Input.is_mouse_button_pressed(BUTTON_LEFT) and object.can_detonate:
-		# This is what triggers the explosion, setting 'object.detonate' to 'true'.
-		object.detonate = true
-
 	if object.can_detonate and object.detonate:
 		detonate()
 
@@ -204,77 +275,99 @@ func _integrate_forces(state):
 	explosion(state.step)
 
 
-func add_children(child_object):
-	for i in range(child_object.blocks.size()):
-		child_object.blocks_container.add_child(child_object.blocks[i], true)
-
+func add_blocks(child_object):
+	# Add the blocks.
 	child_object.parent.add_child(child_object.blocks_container, true)
 
-	# Move the self element faaaar away, instead of removing it,
+	# Add a cover sprite to hide the possible mini gaps between blocks.
+	if not debug_mode: add_cover_sprite()
+
+	# Move the self object faaaar away, instead of removing it,
 	# so we can still use the script and its functions.
 	self.position = Vector2(-999999, -999999)
-#	self.queue_free()
+	# Set the object to sleep so it won't interact with the world.
+	self.sleeping = true
+	# If for some reason it wakes up,
+	# we make it invisible so at least we won't see it.
+	self.visible = false
 
 
-func detonate():
-	object.can_detonate = false
-	object.has_detonated = true
+func add_cover_sprite():
+	var cover_sprite = Sprite.new()
+	cover_sprite.name = cover_sprite_name
+	cover_sprite.texture = get_node(object.sprite_name).texture
+	cover_sprite.scale = get_node(object.sprite_name).scale
+	cover_sprite.centered = get_node(object.sprite_name).centered
+	object.parent.add_child(cover_sprite, true)
 
+
+func check_for_particles():
 	# Check if the parent node has particles as a child.
 	for child in object.parent.get_children():
 		if child is Particles2D or child is CPUParticles2D or child.is_in_group(fake_explosions_group):
 			object.particles = child
 			object.has_particles = true
 
+
+func detonate():
+	object.can_detonate = false
+	object.has_detonated = true
+
+	# Remove the cover sprite.
+	if object.parent.has_node(cover_sprite_name):
+		object.parent.get_node(cover_sprite_name).queue_free()
+
+	# Check if the object has particles and if so, start emitting them.
 	if object.has_particles:
-		if object.particles is Particles2D or object.particles is CPUParticles2D:
-			object.particles.emitting = true
-		elif object.particles.is_in_group(fake_explosions_group):
+		if object.particles.is_in_group(fake_explosions_group):
 			object.particles.particles_explode = true
+		else:
+			object.particles.emitting = true
 
-	for i in range(object.blocks_container.get_child_count()):
-		var child = object.blocks_container.get_child(i)
+	# Set properties to each block.
+	for block in object.blocks_container.get_children():
+		# Set each block's scale.
+		if object.blocks_total >= 4:
+			var block_scale = 0.5 if randf() < 0.5 else 1.0
+			block.get_node(object.sprite_name).scale *= Vector2(block_scale, block_scale)
+			block.get_node(object.collision_name).scale *= Vector2(block_scale, block_scale)
+			block.get_node(object.collision_name).position *= Vector2(block_scale, block_scale)
+	
+			# Set each block's mass depending on its scale.
+			block.mass *= block_scale 
 
-		var child_gravity_scale = blocks_gravity_scale
-		child.gravity_scale = child_gravity_scale
+		# Start each block's color tween to make them darker.
+		block.get_node(color_tween_name).start()
 
-		var child_scale = rand_range(0.5, 1.5)
-		child.get_node(object.sprite_name).scale = Vector2(child_scale, child_scale)
-		child.get_node(object.collision_name).scale = Vector2(child_scale, child_scale)
+		# Set each block to RIGID mode.
+		block.set_mode(MODE_RIGID)
 
-		child.mass = child_scale
-
-		child.set_collision_layer(0 if randf() < 0.5 else object.collision_layers)
-		child.set_collision_mask(0 if randf() < 0.5 else object.collision_masks)
-
-		child.z_index = 0 if randf() < 0.5 else -1
-
-		var child_color = rand_range(100, 255) / 255
-		var color_tween = Tween.new()
-		color_tween.interpolate_property(
-			child,
-			"modulate", 
-			Color(1.0, 1.0, 1.0, 1.0),
-			Color(child_color, child_color, child_color, 1.0),
-			0.25,
-			Tween.TRANS_LINEAR,
-			Tween.EASE_IN)
-		add_child(color_tween, true)
-		color_tween.start()
-
-		child.set_mode(MODE_RIGID)
-
-	object.debris_timer.start()
+	# Start the debris timer if the timer exists.
+	if object.debris_timer: object.debris_timer.start()
 
 
 func explosion(delta):
 	if object.detonate:
 		if debug_mode: print("'%s' object exploded!" % self.name)
 
-		for i in range(object.blocks_container.get_child_count()):
-			var child = object.blocks_container.get_child(i)
-
-			child.apply_central_impulse(Vector2(rand_range(-blocks_impulse, blocks_impulse), -blocks_impulse))
+		for block in object.blocks_container.get_children():
+			var block_angular_velocity = rand_range((block.mass * blocks_gravity_scale) / 2, block.mass * blocks_gravity_scale)# * 10
+#			block_angular_velocity = rand_range(block.mass / 2, block.mass)
+			block.angular_velocity = block_angular_velocity
+			var block_offset = Vector2(
+				rand_range(-block.mass * 1, block.mass * 1),
+				rand_range(-block.mass * 1, block.mass * 1)
+			)
+#			block_offset = Vector2(100, 100)
+			var block_impulse = Vector2(
+				rand_range(-blocks_impulse, blocks_impulse),
+				rand_range(-blocks_impulse, (-blocks_impulse / 10))
+			)
+#			block_impulse = Vector2(0, 0)
+			block.apply_impulse(
+				block_offset,
+				block_impulse
+			)
 
 		# Add a delay before setting 'object.detonate' to 'false'.
 		# Sometimes 'object.detonate' is set to 'false' so quickly that the explosion never happens.
@@ -296,34 +389,72 @@ func explosion(delta):
 func _on_debris_timer_timeout():
 	if debug_mode: print("'%s' object's debris timer (%ss) timed out!" % [self.name, debris_max_time])
 
-	for i in range(object.blocks_container.get_child_count()):
-		var child = object.blocks_container.get_child(i)
-
-		if not object.remove_debris:
-			child.set_mode(MODE_STATIC)
-			child.get_node(object.collision_name).disabled = true
-
-			# Remove the self element as we don't need it anymore.
-			self.queue_free()
+	for block in object.blocks_container.get_children():
+		if object.remove_debris:
+			block.get_node(opacity_tween_name).start()
 		else:
-			var color_r = child.modulate.r
-			var color_g = child.modulate.g
-			var color_b = child.modulate.b
-			var color_a = child.modulate.a
-
-			var opacity_tween = Tween.new()
-			opacity_tween.connect("tween_completed", self, "_on_opacity_tween_completed")
-			opacity_tween.interpolate_property(
-				child,
-				"modulate", 
-				Color(color_r, color_g, color_b, color_a),
-				Color(color_r, color_g, color_b, 0.0),
-				rand_range(0.0, 1.0),
-				Tween.TRANS_LINEAR,
-				Tween.EASE_IN)
-			add_child(opacity_tween, true)
-			opacity_tween.start()
+			# Set each block to STATIC mode.
+			block.set_mode(MODE_STATIC)
+			# Disable each block's collision.
+			block.get_node(object.collision_name).disabled = true
+			# Remove the self object as we don't need it anymore.
+			self.queue_free()
 
 
 func _on_opacity_tween_completed(obj, _key):
 	obj.queue_free()
+
+
+func create_polygon_collision(sprite, parent):
+	# We need to get the image from the texture or load the image
+	# directly if you imported it as an Image.
+	# In this case, we get the image from the sprite's texture.
+
+	# Get the sprite's texture.
+	var texture = sprite.texture
+	# Get the sprite texture's size.
+	var texture_size = sprite.texture.get_size()
+	# Get the image from the sprite's texture.
+	var image = texture.get_data()
+
+	# Create a new bitmap.
+	var bitmap = BitMap.new()
+	# Create the bitmap from the image. We set the minimum alpha threshold.
+	bitmap.create_from_image_alpha(image, 0.01) # 0.1 (default threshold)
+	# Get the rect of the bitmap.
+	var bitmap_rect = Rect2(Vector2(0, 0), bitmap.get_size())
+	# Grow the bitmap if you need (we don't need it in this case).
+#	bitmap.grow_mask(0, rect) # 2
+	# Convert all the opaque parts of the bitmap into polygons.
+	var polygons = bitmap.opaque_to_polygons(bitmap_rect, 0) # 2
+
+	# Check if there are polygons.
+	if polygons.size() > 0:
+		# Remove the parent object's collision, as we won't need it.
+		for child in parent.get_children():
+			if child is CollisionShape2D or child is CollisionPolygon2D:
+				child.queue_free()
+
+		# Loop through all the polygons.
+		for i in range(polygons.size()):
+			# Create a new 'CollisionPolygon2D'.
+			var collision = CollisionPolygon2D.new()
+			collision.name = "CollisionPolygon2D"
+			# Set its polygon to the first polygon you've got
+			collision.polygon = polygons[i]
+			# Position the collision to the same position as the sprite's. 
+			# Check if the sprite is centered to get the proper position.
+			if sprite.centered:
+				collision.position = sprite.position - (texture_size / 2)
+			else:
+				collision.position = sprite.position
+			# Take the sprite's scale into account and apply it to the position.
+			collision.scale = sprite.scale
+			collision.position *= collision.scale
+
+			# and add it to the node
+			object.collision_name = collision.name
+			parent.add_child(collision, true)
+	else:
+		# If the aren't any polygons, remove the parent node.
+		parent.queue_free()
