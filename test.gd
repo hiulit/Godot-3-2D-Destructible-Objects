@@ -33,4 +33,5 @@ func _on_reset_button_pressed():
 		print("RESET")
 		print("-----")
 	else:
+		# Print error.
 		print(reset)
