@@ -352,7 +352,7 @@ func explosion(delta):
 
 		for block in object.blocks_container.get_children():
 			var block_angular_velocity = rand_range((block.mass * blocks_gravity_scale) / 2, block.mass * blocks_gravity_scale)# * 10
-#			block_angular_velocity = rand_range(block.mass / 2, block.mass)
+			block_angular_velocity = block.mass * (blocks_impulse / blocks_gravity_scale)
 			block.angular_velocity = block_angular_velocity
 			var block_offset = Vector2(
 				rand_range(-block.mass * 1, block.mass * 1),

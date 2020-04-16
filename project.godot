@@ -16,7 +16,7 @@ _global_script_class_icons={
 [application]
 
 config/name="Godot-3-2D-Destructible-Objects"
-run/main_scene="res://test.tscn"
+run/main_scene="res://demo.tscn"
 config/icon="res://icon.png"
 
 [display]
