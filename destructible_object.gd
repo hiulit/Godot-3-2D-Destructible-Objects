@@ -453,7 +453,7 @@ func create_polygon_collision(sprite, parent):
 		for i in range(polygons.size()):
 			# Create a new 'CollisionPolygon2D'.
 			var collision = CollisionPolygon2D.new()
-			collision.name = "CollisionPolygon2D"
+			collision.name = "collision_polygon"
 			# Set its polygon to the first polygon you've got
 			collision.polygon = polygons[i]
 			# Position the collision to the same position as the sprite's. 
