@@ -203,6 +203,7 @@ func _ready():
 			var explosion_color = rand_range(100, 200) / 255
 			var block_explosion_color = Color(explosion_color, explosion_color, explosion_color, 1.0)
 			var block_color_tween = block.get_node(color_tween_name)
+			block_color_tween.connect("tween_completed", self, "_on_color_tween_completed")
 			block_color_tween.interpolate_property(
 				block,
 				"modulate", 
@@ -392,6 +393,8 @@ func _on_debris_timer_timeout():
 	if debug_mode: print("'%s' object's debris timer (%ss) timed out!" % [self.name, debris_max_time])
 
 	for block in object.blocks_container.get_children():
+		# Remove the debris timer node, as we don't need it anymore.
+		block.get_node(debris_timer_name).queue_free()
 
 		# If 'remove_debris' is set to 'true',
 		# start the opacity tween node (to make the blocks disappear).
@@ -404,6 +407,11 @@ func _on_debris_timer_timeout():
 			block.get_node(object.collision_name).disabled = true
 			# Remove the self object, as we don't need it anymore.
 			self.queue_free()
+
+
+func _on_color_tween_completed(obj, _key):
+	# Remove the color tween from each block when it has finished itself.
+	obj.get_node(color_tween_name).queue_free()
 
 
 func _on_opacity_tween_completed(obj, _key):
