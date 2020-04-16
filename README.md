@@ -109,6 +109,12 @@ Each value must be a positive integer.
 | --- | --- | --- | --- |
 | `blocks_gravity_scale` | `float` | The gravity of the blocks. | `10` |
 
+### Random debris scale
+
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `random_debris_scale` | `bool` | Controls whether some random debris will scale to half its size. | `true` |
+
 ### Debris max time
 
 | Name | Type | Description | Default |
