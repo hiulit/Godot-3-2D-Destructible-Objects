@@ -356,23 +356,20 @@ func explosion(delta):
 		if debug_mode: print("'%s' object exploded!" % self.name)
 
 		for block in object.blocks_container.get_children():
-			var block_angular_velocity = rand_range((block.mass * blocks_gravity_scale) / 2, block.mass * blocks_gravity_scale)# * 10
-			block_angular_velocity = block.mass * (blocks_impulse / blocks_gravity_scale)
-			block.angular_velocity = block_angular_velocity
-			var block_offset = Vector2(
-				rand_range(-block.mass * 1, block.mass * 1),
-				rand_range(-block.mass * 1, block.mass * 1)
+			# Create a random angular velocity for each block, depending on its mass.
+			var block_angular_velocity = rand_range(
+				(block.mass * (blocks_impulse / blocks_gravity_scale)) / 2,
+				block.mass * (blocks_impulse / blocks_gravity_scale)
 			)
-#			block_offset = Vector2(100, 100)
+			# Set the angular velocity for each block.
+			block.angular_velocity = block_angular_velocity
+			# Create a random impulse for each block, depending on its mass.
 			var block_impulse = Vector2(
 				rand_range(-blocks_impulse, blocks_impulse),
-				rand_range(-blocks_impulse, (-blocks_impulse / 10))
+				rand_range(-blocks_impulse, (-blocks_impulse / blocks_gravity_scale))
 			)
-#			block_impulse = Vector2(0, 0)
-			block.apply_impulse(
-				block_offset,
-				block_impulse
-			)
+			# Apply a central impulse to each block.
+			block.apply_central_impulse(block_impulse)
 
 		# Add a delay before setting 'object.detonate' to 'false'.
 		# Sometimes 'object.detonate' is set to 'false' so quickly that the explosion never happens.
