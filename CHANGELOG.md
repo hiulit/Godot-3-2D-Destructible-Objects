@@ -8,11 +8,11 @@
 
 **NOTE**: This release may contain breaking changes!
 
-This major release removes the limitaton of using square or rectangle sprites. Now it's possible to use any kind of shape, with transparency
+This major release removes the limitation of using square or rectangle sprites. Now it's possible to use any kind of sprite, of any shape, with transparency, etc.
 
 ### Addded
 
-* New parameter: `random_debris_scale` - Controls whether some random debris will scale to half its size.
+* New parameter: `random_debris_scale` - Controls whether some random blocks will scale to half its size.
 * New parameter: `group_name` - To add each destructible oject to its own group.
 * New `object` attributes:
   * `object.blocks_total` (`blocks_per_side.x` * `blocks_per_side.y`).
