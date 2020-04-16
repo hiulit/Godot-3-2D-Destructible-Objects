@@ -240,6 +240,7 @@ func _ready():
 			# Update the index.
 			i += 1
 
+	# Add the blocks to the blocks container.
 	call_deferred("add_blocks", object)
 
 	if debug_mode: print("--------------------------------")
@@ -275,10 +276,11 @@ func _integrate_forces(state):
 
 
 func add_blocks(child_object):
-	# Add the blocks.
+	# Add the blocks to the blocks container.
 	child_object.parent.add_child(child_object.blocks_container, true)
 
 	# Add a cover sprite to hide the possible mini gaps between blocks.
+	# Don't add it 'debug_mode' is set to 'true', so we can't see the debug blocks.
 	if not debug_mode: add_cover_sprite()
 
 	# Move the self object faaaar away, instead of removing it,
@@ -292,6 +294,7 @@ func add_blocks(child_object):
 
 
 func add_cover_sprite():
+	# Duplicate the object's sprite.
 	var cover_sprite = Sprite.new()
 	cover_sprite.name = cover_sprite_name
 	cover_sprite.texture = get_node(object.sprite_name).texture
@@ -392,6 +395,9 @@ func _on_debris_timer_timeout():
 	if debug_mode: print("'%s' object's debris timer (%ss) timed out!" % [self.name, debris_max_time])
 
 	for block in object.blocks_container.get_children():
+
+		# If 'remove_debris' is set to 'true',
+		# start the opacity tween node (to make the blocks disappear).
 		if object.remove_debris:
 			block.get_node(opacity_tween_name).start()
 		else:
@@ -399,11 +405,12 @@ func _on_debris_timer_timeout():
 			block.set_mode(MODE_STATIC)
 			# Disable each block's collision.
 			block.get_node(object.collision_name).disabled = true
-			# Remove the self object as we don't need it anymore.
+			# Remove the self object, as we don't need it anymore.
 			self.queue_free()
 
 
 func _on_opacity_tween_completed(obj, _key):
+	# Remove the block when the opacity tween has finished.
 	obj.queue_free()
 
 
