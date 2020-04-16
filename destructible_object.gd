@@ -234,8 +234,6 @@ func _ready():
 
 			if debug_mode: block.modulate = Color(rand_range(0, 1), rand_range(0, 1), rand_range(0, 1), 0.9)
 
-#			if debug_mode: print("object[", n, "] position: ", block.position)
-
 			# Add each block to the blocks container.
 			object.blocks_container.add_child(block, true)
 
