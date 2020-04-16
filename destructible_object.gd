@@ -4,6 +4,7 @@ export (String) var object_group = "destructible_objects"
 export (Vector2) var blocks_per_side = Vector2(6, 6)
 export (float) var blocks_impulse = 600
 export (float) var blocks_gravity_scale = 10
+export (bool) var random_debris_scale = false
 export (float) var debris_max_time = 5
 export (bool) var remove_debris = false
 export (int) var collision_layers = 1
@@ -327,7 +328,10 @@ func detonate():
 	# Set properties to each block.
 	for block in object.blocks_container.get_children():
 		# Set each block's scale.
-		if object.blocks_total >= 4:
+		# If 'random_debris_scale' is set to 'true',
+		# some random blocks will scale to half its size.
+		# The scale will affect the block's mass, which by default is 1.
+		if random_debris_scale:
 			var block_scale = 0.5 if randf() < 0.5 else 1.0
 			block.get_node(object.sprite_name).scale *= Vector2(block_scale, block_scale)
 			block.get_node(object.collision_name).scale *= Vector2(block_scale, block_scale)
