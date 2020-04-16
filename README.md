@@ -15,6 +15,7 @@ RigidBody2D
     └── RectangleShape2D
 ```
 
+The `CollisionShape2D` is not actually needed, so you can ommit it. But then you'll get this warning message .....xxxxxx
 
 ## Usage
 
@@ -113,7 +114,7 @@ Each value must be a positive integer.
 
 | Name | Type | Description | Default |
 | --- | --- | --- | --- |
-| `random_debris_scale` | `bool` | Controls whether some random debris will scale to half its size. | `true` |
+| `random_debris_scale` | `bool` | Controls whether some random blocks will scale to half its size. | `true` |
 
 ### Debris max time
 
