@@ -2,18 +2,25 @@
 
 ## Unreleased
 
+* Up to date
+
+## [2.0.0] - 2020-04-16
+
 **NOTE**: This release may contain breaking changes!
+
+This major release removes the limitaton of using square or rectangle sprites. Now it's possible to use any kind of shape, with transparency
 
 ### Addded
 
-* New reset button in `test.tscn` to be able to reset the scene.
-* New script: `test.gd` - To control the new reset button in `test.tscn` along with the input process to detonate the destructible object (removed from `destructible_object.gd`).
+* New parameter: `random_debris_scale` - Controls whether some random debris will scale to half its size.
 * New parameter: `group_name` - To add each destructible oject to its own group.
 * New `object` attributes:
   * `object.blocks_total` (`blocks_per_side.x` * `blocks_per_side.y`).
   * `object.color_tween`.
   * `object.opacity_tween`.
   * `object.size`. See the [Changed](#changed) section for more information.
+* New reset button in `test.tscn` to be able to reset the scene.
+* New script: `test.gd` - To control the new reset button in `test.tscn` along with the input process to detonate the destructible object (removed from `destructible_object.gd`).
 
 ### Changed
 
@@ -25,6 +32,7 @@
 * The color and opacity tweens are both now added in the `_ready()` functions instead of adding them on the `detonate()` and `_on_debris_timer_timeout()` respectively (for better performance).
 * The debris timer and the opacity tween are now added only if necessary. For the debris timer we check `if debris_max_time > 0` and for the the opacity tween we check `if object.remove_debris`.
 * Checking for particles (`check_for_particles()`) is now done in the `_ready()` function (for better performance).
+* Changed `apply_impulse()` for `apply_central_impulse()` plus the addition of random `angular_velocity` for each block.
 
 ### Deprecated
 
