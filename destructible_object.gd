@@ -434,13 +434,13 @@ func create_polygon_collision(sprite, parent):
 	# Create a new bitmap.
 	var bitmap = BitMap.new()
 	# Create the bitmap from the image. We set the minimum alpha threshold.
-	bitmap.create_from_image_alpha(image, 0.01) # 0.1 (default threshold)
+	bitmap.create_from_image_alpha(image, 0.01) # 0.1 (default threshold).
 	# Get the rect of the bitmap.
 	var bitmap_rect = Rect2(Vector2(0, 0), bitmap.get_size())
 	# Grow the bitmap if you need (we don't need it in this case).
 #	bitmap.grow_mask(0, rect) # 2
 	# Convert all the opaque parts of the bitmap into polygons.
-	var polygons = bitmap.opaque_to_polygons(bitmap_rect, 0) # 2
+	var polygons = bitmap.opaque_to_polygons(bitmap_rect, 0) # 2 (default epsilon).
 
 	# Check if there are polygons.
 	if polygons.size() > 0:
