@@ -5,8 +5,8 @@ export (Vector2) var blocks_per_side = Vector2(6, 6)
 export (float) var blocks_impulse = 600
 export (float) var blocks_gravity_scale = 10
 export (bool) var random_debris_scale = false
-export (float) var debris_max_time = 5
-export (bool) var remove_debris = false
+export (float) var debris_max_time = 3
+export (bool) var remove_debris = true
 export (int) var collision_layers = 1
 export (int) var collision_masks = 1
 export (bool) var collision_one_way = false
@@ -174,8 +174,10 @@ func _ready():
 			block_sprite.texture = block_texture
 
 			# Create a new 'CollisionPolygon2D' for each block.
-			create_polygon_collision(block_sprite, block)
-#			call_deferred("create_polygon_collision", block_sprite, block)
+			# If the function return false, meaning it couldn't create a collision,
+			# continue the loop.
+			if not create_polygon_collision(block_sprite, block):
+				continue
 
 			# Set each block to STATIC mode.
 			block.set_mode(MODE_STATIC)
@@ -240,6 +242,8 @@ func _ready():
 
 			# Update the index.
 			i += 1
+
+	if debug_mode: print("total actual blocks:", object.blocks_container.get_child_count())
 
 	# Add the blocks to the blocks container.
 	call_deferred("add_blocks", object)
@@ -449,6 +453,7 @@ func create_polygon_collision(sprite, parent):
 			if child is CollisionShape2D or child is CollisionPolygon2D:
 				child.queue_free()
 
+		# Create the new collision/s.
 		# Loop through all the polygons.
 		for i in range(polygons.size()):
 			# Create a new 'CollisionPolygon2D'.
@@ -465,10 +470,13 @@ func create_polygon_collision(sprite, parent):
 			# Take the sprite's scale into account and apply it to the position.
 			collision.scale = sprite.scale
 			collision.position *= collision.scale
-
-			# and add it to the node
+			# Add the collision to the block.
 			object.collision_name = collision.name
 			parent.add_child(collision, true)
+
+			return true
 	else:
-		# If the aren't any polygons, remove the parent node.
+		# If the aren't any polygons to create collisions, remove the block.
 		parent.queue_free()
+
+		return false
