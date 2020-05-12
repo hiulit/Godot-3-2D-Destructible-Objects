@@ -305,6 +305,7 @@ func add_cover_sprite():
 	cover_sprite.texture = get_node(object.sprite_name).texture
 	cover_sprite.scale = get_node(object.sprite_name).scale
 	cover_sprite.centered = get_node(object.sprite_name).centered
+	cover_sprite.position = self.position
 	object.parent.add_child(cover_sprite, true)
 
 
