@@ -1,0 +1,205 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://examples/projectile/projectile_example.gd" type="Script" id=1]
+[ext_resource path="res://examples/projectile/projectile.tscn" type="PackedScene" id=2]
+[ext_resource path="res://destructible_object.tscn" type="PackedScene" id=3]
+[ext_resource path="res://destructible_object.gd" type="Script" id=4]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 512, 12 )
+
+[node name="projectile_example" type="Node2D"]
+script = ExtResource( 1 )
+projectile_linear_velocity = Vector2( 1250, -400 )
+
+[node name="GUI" type="Node2D" parent="."]
+
+[node name="reset_button" type="Button" parent="GUI"]
+margin_left = 40.0
+margin_top = 40.0
+margin_right = 120.0
+margin_bottom = 64.0
+text = "Reset"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="detonate_button" type="Button" parent="GUI"]
+margin_left = 40.0
+margin_top = 104.0
+margin_right = 120.0
+margin_bottom = 128.0
+text = "Detonate"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="launch_button" type="Button" parent="GUI"]
+margin_left = 48.0
+margin_top = 392.0
+margin_right = 128.0
+margin_bottom = 416.0
+text = "Launch"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="destroy_checkbox" type="CheckBox" parent="GUI"]
+margin_left = 40.0
+margin_top = 168.0
+margin_right = 120.0
+margin_bottom = 192.0
+text = "Destroy"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="collapse_checkbox" type="CheckBox" parent="GUI"]
+margin_left = 128.0
+margin_top = 168.0
+margin_right = 210.0
+margin_bottom = 192.0
+text = "Collapse"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="only_shock_wave_checkbox" type="CheckBox" parent="GUI"]
+margin_left = 40.0
+margin_top = 216.0
+margin_right = 245.0
+margin_bottom = 240.0
+disabled = true
+text = "Only use shock wave radius"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="shock_wave_debug_mode_checkbox" type="CheckButton" parent="GUI"]
+margin_left = 72.0
+margin_top = 240.0
+margin_right = 309.0
+margin_bottom = 280.0
+disabled = true
+text = "Shock wave debug mode"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="show_shock_wave_checkbox" type="CheckBox" parent="GUI"]
+margin_left = 40.0
+margin_top = 280.0
+margin_right = 178.0
+margin_bottom = 304.0
+disabled = true
+text = "Show shock wave"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="remove_projectile_checkbox" type="CheckBox" parent="GUI"]
+margin_left = 40.0
+margin_top = 328.0
+margin_right = 263.0
+margin_bottom = 352.0
+text = "Remove projectile on collision"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="walls" type="Node2D" parent="."]
+__meta__ = {
+"_edit_group_": true,
+"_edit_lock_": true
+}
+
+[node name="wall_01" type="StaticBody2D" parent="walls"]
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="background" type="ColorRect" parent="walls/wall_01"]
+margin_right = 1024.0
+margin_bottom = 24.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_01"]
+position = Vector2( 512, 12 )
+shape = SubResource( 1 )
+
+[node name="wall_02" type="StaticBody2D" parent="walls"]
+position = Vector2( 0, 576 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="background" type="ColorRect" parent="walls/wall_02"]
+margin_right = 1024.0
+margin_bottom = 24.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_02"]
+position = Vector2( 512, 12 )
+shape = SubResource( 1 )
+
+[node name="wall_03" type="StaticBody2D" parent="walls"]
+position = Vector2( 24, -192 )
+rotation = 1.5708
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="background" type="ColorRect" parent="walls/wall_03"]
+margin_right = 1024.0
+margin_bottom = 24.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_03"]
+position = Vector2( 512, 12 )
+shape = SubResource( 1 )
+
+[node name="wall_04" type="StaticBody2D" parent="walls"]
+position = Vector2( 1024, -192 )
+rotation = 1.5708
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="background" type="ColorRect" parent="walls/wall_04"]
+margin_right = 1024.0
+margin_bottom = 24.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="collision" type="CollisionShape2D" parent="walls/wall_04"]
+position = Vector2( 512, 12 )
+shape = SubResource( 1 )
+
+[node name="projectile" parent="." instance=ExtResource( 2 )]
+position = Vector2( 128, 544 )
+
+[node name="destructible_objects" type="Node2D" parent="."]
+
+[node name="destructible_object" parent="destructible_objects" instance=ExtResource( 3 )]
+position = Vector2( 832, 512 )
+mass = 10.0
+gravity_scale = 10.0
+script = ExtResource( 4 )
+blocks_impulse = 150.0
+random_collision = false
+[connection signal="pressed" from="GUI/reset_button" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="GUI/detonate_button" to="." method="_on_detonate_button_pressed"]
+[connection signal="pressed" from="GUI/launch_button" to="." method="_on_launch_button_pressed"]
+[connection signal="toggled" from="GUI/destroy_checkbox" to="." method="_on_destroy_checkbox_toggled"]
+[connection signal="toggled" from="GUI/collapse_checkbox" to="." method="_on_collapse_checkbox_toggled"]
+[connection signal="toggled" from="GUI/only_shock_wave_checkbox" to="." method="_on_only_shock_wave_checkbox_toggled"]
+[connection signal="toggled" from="GUI/shock_wave_debug_mode_checkbox" to="." method="_on_shock_wave_debug_mode_checkbox_toggled"]
+[connection signal="toggled" from="GUI/show_shock_wave_checkbox" to="." method="_on_show_shock_wave_checkbox_toggled"]
+[connection signal="toggled" from="GUI/remove_projectile_checkbox" to="." method="_on_remove_projectile_checkbox_toggled"]

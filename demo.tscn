@@ -147,7 +147,6 @@ __meta__ = {
 }
 
 [node name="destructible_object" parent="destructible_objects_container/destructible_object_02" instance=ExtResource( 1 )]
-gravity_scale = 6.0
 script = ExtResource( 2 )
 
 [node name="explosion_particles" parent="destructible_objects_container/destructible_object_02" instance=ExtResource( 3 )]
@@ -162,7 +161,6 @@ __meta__ = {
 }
 
 [node name="destructible_object" parent="destructible_objects_container/destructible_object_03" instance=ExtResource( 1 )]
-gravity_scale = 6.0
 script = ExtResource( 2 )
 
 [node name="explosion_particles" parent="destructible_objects_container/destructible_object_03" instance=ExtResource( 3 )]

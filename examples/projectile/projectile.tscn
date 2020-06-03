@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://examples/projectile/projectile.gd" type="Script" id=1]
+
+[sub_resource type="CircleShape2D" id=1]
+radius = 32.0
+
+[node name="projectile" type="RigidBody2D"]
+mass = 10.0
+gravity_scale = 10.0
+contacts_reported = 1
+contact_monitor = true
+script = ExtResource( 1 )
+
+[node name="collision" type="CollisionShape2D" parent="."]
+shape = SubResource( 1 )
