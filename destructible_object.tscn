@@ -6,6 +6,8 @@
 extents = Vector2( 64, 64 )
 
 [node name="destructible_object" type="RigidBody2D"]
+mass = 10.0
+gravity_scale = 10.0
 
 [node name="sprite" type="Sprite" parent="."]
 texture = ExtResource( 1 )
