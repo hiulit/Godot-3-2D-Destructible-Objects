@@ -1,12 +1,16 @@
 extends RigidBody2D
 
+export(int, "0", "1", "2") var object_mode
 export (String) var object_group = "destructible_objects"
-export (Vector2) var blocks_per_side = Vector2(6, 6)
-export (float) var blocks_impulse = 600
-export (float) var blocks_gravity_scale = 10
+export (Vector2) var blocks_per_side = Vector2(10, 10)
+export (float) var blocks_impulse = 100
+#export (float) var blocks_gravity_scale = 10
 export (bool) var random_debris_scale = false
 export (float) var debris_max_time = 3
 export (bool) var remove_debris = true
+export (bool) var random_depth = true
+export (bool) var random_collision = true
+export (bool) var custom_collision = false
 export (int) var collision_layers = 1
 export (int) var collision_masks = 1
 export (bool) var collision_one_way = false
@@ -27,15 +31,22 @@ var explosion_delay_timer = 0
 var explosion_delay_timer_limit = 0
 
 func _ready():
+	self.set_mode(MODE_STATIC)
+	self.sleeping = true
+
 #	Engine.time_scale = 0.1
 	object = {
 		blocks = [],
 		blocks_container = Node2D.new(),
-		blocks_gravity_scale = blocks_gravity_scale,
-		blocks_impulse = blocks_impulse,
+		blocks_impulse = blocks_impulse * self.mass * self.gravity_scale,
 		blocks_per_side = blocks_per_side,
 		blocks_total = blocks_per_side.x * blocks_per_side.y,
+		can_collapse = true,
 		can_detonate = true,
+		collapse = false,
+		collapsible_blocks = [],
+		collision = null,
+		collision_type = null,
 		collision_layers = collision_layers,
 		collision_masks = collision_masks,
 		collision_name = null,
@@ -43,16 +54,26 @@ func _ready():
 		color_tween = Tween.new(),
 		debris_max_time = debris_max_time,
 		debris_timer = Timer.new(),
+		destructible_blocks = [],
 		detonate = false,
 		has_detonated = false,
+		has_collapsed = false,
 		has_particles = false,
-		offset = Vector2(),
+		offset = Vector2.ZERO,
 		opacity_tween = Tween.new(),
 		parent = get_parent(),
 		particles = null,
+		poly_intersect = null,
+		poly_intersect_name = null,
 		remove_debris = remove_debris,
 		size = Vector2(),
+		sprite = null,
+		sprite_centered = null,
 		sprite_name = null,
+		sprite_texture = null,
+		poly_block_name = "poly_block",
+		poly_sprite = null,
+		poly_sprite_name = "poly_sprite"
 	}
 
 	# Add object to group.
@@ -64,20 +85,30 @@ func _ready():
 	# Randomize the seed of the random number generator.
 	if randomize_seed: randomize()
 
-	# Look for a 'Sprite' and a 'CollisionShape2D' or 'CollisionShape2D'.
+	# Look for a 'Sprite' and a 'CollisionShape2D' or 'CollisionPolygon2D'.
 	for child in get_children():
 		if child is Sprite:
+			object.sprite = child
 			object.sprite_name = child.name
+			object.sprite_texture = child.texture
 
-		if child is CollisionShape2D or child is CollisionPolygon2D:
+		if child is CollisionShape2D:
+			object.collision = child
+			object.collision_type = "shape"
+			object.collision_name = child.name
+
+		if child is CollisionPolygon2D:
+			object.collision = child
+			object.collision_type = "polygon"
 			object.collision_name = child.name
 
 	# Check if there is least a 'Sprite' for the script to work properly.
-	if not object.sprite_name:
+	if not object.sprite:
 		printerr("------------------------------------------------------------------")
 		printerr("ERROR: The '%s' node must contain at least a 'Sprite'!" % self.name)
 		printerr("------------------------------------------------------------------")
 		object.can_detonate = false
+		object.can_collapse = false
 		self.set_mode(MODE_STATIC)
 		return
 
@@ -87,6 +118,7 @@ func _ready():
 		printerr("ERROR: The '%s' node's 'block_per_side' values (%s, %s) must be positive integers!" % [self.name, object.blocks_per_side.x, object.blocks_per_side.y])
 		printerr("---------------------------------------------------------------------------------------------------------------------------------------------")
 		object.can_detonate = false
+		object.can_collapse = false
 		self.set_mode(MODE_STATIC)
 		return
 
@@ -120,24 +152,171 @@ func _ready():
 	if debug_mode: print("total blocks: ", object.blocks_total)
 
 	# Check if the sprite is using 'Region', to get the proper size.
-	if get_node(object.sprite_name).region_enabled:
+	if object.sprite.region_enabled:
 		object.size = Vector2(
-			float(get_node(object.sprite_name).region_rect.size.x),
-			float(get_node(object.sprite_name).region_rect.size.y)
+			float(object.sprite.region_rect.size.x),
+			float(object.sprite.region_rect.size.y)
 		)
 	else:
 		object.size = Vector2(
-			float(get_node(object.sprite_name).texture.get_width()),
-			float(get_node(object.sprite_name).texture.get_height())
+			float(object.sprite.texture.get_width()),
+			float(object.sprite.texture.get_height())
 		)
 
 	if debug_mode: print("size: ", object.size)
 
 	# Check if the sprite is centered to get the offset.
-	if get_node(object.sprite_name).centered:
+	if object.sprite.centered:
+		object.sprite_centered = true
 		object.offset = object.size / 2
+	else:
+		object.sprite_centered = false
 
 	if debug_mode: print("offset: ", object.offset)
+
+	if object_mode == 0:
+		pass
+	elif object_mode == 1:
+		# Maybe everything needs to be in a call_deferred function.
+		# Create a polygon from the object's sprite, called "poly_sprite".
+		object.poly_sprite = create_polygon_from_sprite(object.sprite)
+	
+		# If the "poly_sprite" is created successfully...
+		if object.poly_sprite:
+			# ... loop through all the "blocks_per_side" to create all the blocks.
+			for x in range(object.blocks_per_side.x):
+				for y in range(object.blocks_per_side.y):
+					# Create each block by duplicating the original object.
+					var block = self.duplicate(8)
+	
+	#				# Debug mode only.
+					if debug_mode: block.modulate = Color(rand_range(0, 1), rand_range(0, 1), rand_range(0, 1), 0.9)
+	
+					# Remove the blocks' sprite (coming from the main node).
+					block.get_node(object.sprite_name).queue_free()
+	
+					# This should not be here. Maybe in another function.
+					block.set_mode(MODE_STATIC)
+					block.mass = self.mass / object.blocks_total
+#					block.gravity_scale = blocks_gravity_scale
+#					var block_scale = 0.5 if randf() < 0.5 else 1.0
+#					block.mass *= block_scale
+	
+					# Create a polygon for each block, called "poly_block".
+					# We'll use it to perform polygon boolean operations against the object's collision.
+					var poly_block = create_poly_block(x, y)
+	
+					# Create the static blocks.
+					var poly_static = boolean_polygon("clip", poly_block, object.collision)
+					# Create the destructible blocks.
+					var poly_destructible = boolean_polygon("intersect", poly_block, object.collision)
+	
+					# Check if there are static blocks.
+					if poly_static:
+						for i in poly_static.size():
+							poly_static[i].name = "poly_static"
+	#						poly_static[i].position = self.position
+							poly_static[i].texture_offset = object.offset
+	
+							var rigid_body = RigidBody2D.new()
+							rigid_body.position = self.position
+							rigid_body.add_to_group("collapsible_objects")
+	
+							# This should not be here. Maybe in another function.
+							rigid_body.set_mode(MODE_STATIC)
+							rigid_body.mass = self.mass / object.blocks_total
+							rigid_body.gravity_scale = self.gravity_scale
+#							rigid_body.gravity_scale = blocks_gravity_scale
+	
+							rigid_body.add_child(poly_static[i])
+							var rigid_body_collision = CollisionPolygon2D.new()
+							rigid_body_collision.disabled = true
+							rigid_body_collision.name = object.collision_name
+							rigid_body_collision.position = poly_static[i].position
+							rigid_body_collision.polygon = poly_static[i].polygon
+							rigid_body.add_child(rigid_body_collision, true)
+							get_parent().call_deferred("add_child", rigid_body, true)
+	
+							# Calculate centroid.
+							var centroid = calculate_centroid(poly_static[i].polygon)
+	
+		#					# Recalculate body center of mass.
+							var new_polygon = PoolVector2Array()
+							for i in rigid_body_collision.polygon.size():
+								var new_point = rigid_body_collision.polygon[i] - centroid
+								new_polygon.append(new_point)
+		#						rigid_body_collision.polygon[i] = new_point
+		#						poly_static[i].polygon[i] = new_point
+							rigid_body_collision.polygon = new_polygon
+							poly_static[i].polygon = new_polygon
+							rigid_body.position += centroid
+							poly_static[i].texture_offset += centroid
+	
+#							if debug_mode: get_parent().origins.append(centroid + self.position)
+							if debug_mode: poly_static[i].modulate = Color(rand_range(0, 1), rand_range(0, 1), rand_range(0, 1), 0.9)
+	
+					# Check if there are destructible blocks.
+					if poly_destructible:
+	#					print(poly_destructible)
+						object.poly_destructible = poly_destructible[0]
+						object.poly_destructible_name = "poly_destructible"
+						object.poly_destructible.name = object.poly_destructible_name
+						object.poly_destructible.texture_offset = object.offset
+						block.add_child(object.poly_destructible, true)
+	
+						# Convert the collision to be the same polygon as the block's polygon.
+						block.get_node(object.collision_name).polygon = object.poly_destructible.polygon
+	#					block.get_node(object.collision_name).z_index = 1
+	
+						# Calculate centroid.
+						var centroid = calculate_centroid(object.poly_destructible.polygon)
+	
+	#					# Recalculate body center of mass.
+						var new_polygon = PoolVector2Array()
+						for i in block.get_node(object.collision_name).polygon.size():
+							var new_point = block.get_node(object.collision_name).polygon[i] - centroid
+							new_polygon.append(new_point)
+	#						block.get_node(object.collision_name).polygon[i] = new_point
+	#						object.poly_destructible.polygon[i] = new_point
+						block.get_node(object.collision_name).polygon = new_polygon
+						object.poly_destructible.polygon = new_polygon
+						block.position += centroid
+						object.poly_destructible.texture_offset += centroid
+	
+						# Debug mode only.
+#						if debug_mode: get_parent().origins.append(centroid + self.position)
+						if debug_mode: object.poly_destructible.modulate = Color(rand_range(0, 0.5), rand_range(0, 0.5), rand_range(0, 0.5), 0.9)
+					else:
+						block.queue_free()
+	
+					object.blocks_container.add_child(block, true)
+	
+			call_deferred("add_blocks", object)
+
+		return
+	elif object_mode == 2:
+		pass
+	else:
+		print("ERROR: not a valid object_mode")
+		return
+
+	if debug_mode: print("mode: ", object_mode)
+
+
+	# 
+	if not custom_collision and object.collision_type == "polygon":
+		# Create a polygon from the object's sprite.
+		object.poly_sprite = create_polygon_from_sprite(object.sprite)
+		object.collision.polygon = object.poly_sprite.polygon
+		# Reposition each point taking the offset into account.
+		var new_polygon = PoolVector2Array()
+		for i in object.collision.polygon.size():
+			var new_point = object.collision.polygon[i] - (Vector2.ONE * object.offset)
+			new_polygon.append(new_point)
+		object.collision.polygon = new_polygon
+		object.collision.scale = object.sprite.scale
+
+
 
 	# Create the blocks and set each own properties.
 	# Initiate the loop's index.
@@ -147,59 +326,26 @@ func _ready():
 		for y in range(object.blocks_per_side.y):
 			# Create each block by duplicating the object.
 			var block = self.duplicate(8)
+			
+			if debug_mode: block.modulate = Color(rand_range(0, 1), rand_range(0, 1), rand_range(0, 1), 0.9)
+
 			# Add a unique name to each block.
 			block.name = self.name + "_block_" + str(i)
 
-			# Create a new image texture for each block's sprite.
-			var block_texture = ImageTexture.new()
-			# Set the image texture's position.
-			var block_texture_position = Vector2(
-				x * (object.size.x / object.blocks_per_side.x),
-				y * (object.size.y / object.blocks_per_side.y)
-			)
-			# Set the image texture's size.
-			var block_texture_size = Vector2(
-				object.size.x / object.blocks_per_side.x,
-				object.size.y / object.blocks_per_side.y
-			)
-			# Set the image texture's rect using the previous position and size.
-			var block_texture_rect = Rect2(block_texture_position, block_texture_size)
-			# Create a new texture from the image texture.
-			block_texture.create_from_image(
-				get_node(object.sprite_name).texture.get_data().get_rect(block_texture_rect),
-				0
-			)
-			# Set the new texture to the block's sprite.
-			var block_sprite = block.get_node(object.sprite_name)
-			block_sprite.texture = block_texture
-
-			# Create a new 'CollisionPolygon2D' for each block.
-			# If the function return false, meaning it couldn't create a collision,
-			# continue the loop.
-			if not create_polygon_collision(block_sprite, block):
-				continue
-
-			# Set each block to STATIC mode.
+			# Set each block to STATIC mode, so it doesn't move.
 			block.set_mode(MODE_STATIC)
 
 			# Put each block to sleep.
 			block.sleeping = true
 
-			# Postion each block.
-			block.position = Vector2(
-				block_texture_position.x + position.x - (object.offset.x - (object.offset.x / object.blocks_per_side.x)),
-				block_texture_position.y + position.y - (object.offset.y - (object.offset.y / object.blocks_per_side.y))
-			)
-			# Take the scale into account.
-			block.position *= get_node(object.sprite_name).get_scale()
+			# Set each block's mass depending on the object's mass and the total number of blocks.
+			block.mass = self.mass / object.blocks_total
 
 			# Set each block collision's properties.
-			block.set_collision_layer(0 if randf() < 0.5 else object.collision_layers)
-			block.set_collision_mask(0 if randf() < 0.5 else object.collision_masks)
+			if random_collision:
+				block.set_collision_layer(0 if randf() < 0.5 else object.collision_layers)
+				block.set_collision_mask(0 if randf() < 0.5 else object.collision_masks)
 			if object.collision_one_way: block.get_node(object.collision_name).one_way_collision = true
-
-			# Add gravity to each block.
-			block.gravity_scale = blocks_gravity_scale
 
 			# Set each block's color tween.
 			var explosion_color = rand_range(100, 200) / 255
@@ -232,12 +378,53 @@ func _ready():
 					Tween.TRANS_LINEAR,
 					Tween.EASE_IN)
 
-			# Set each block's 'z_index'.
-			block.z_index = 0 if randf() < 0.5 else -1
 
-			if debug_mode: block.modulate = Color(rand_range(0, 1), rand_range(0, 1), rand_range(0, 1), 0.9)
+
+			# START - MODE 0
+
+			# Create a new image texture for each block's sprite.
+			var block_texture = ImageTexture.new()
+			# Set the image texture's position.
+			var block_texture_position = Vector2(
+				x * (object.size.x / object.blocks_per_side.x),
+				y * (object.size.y / object.blocks_per_side.y)
+			)
+			# Set the image texture's size.
+			var block_texture_size = Vector2(
+				object.size.x / object.blocks_per_side.x,
+				object.size.y / object.blocks_per_side.y
+			)
+			# Set the image texture's rect using the previous position and size.
+			var block_texture_rect = Rect2(block_texture_position, block_texture_size)
+			# Create a new texture from the image texture.
+			block_texture.create_from_image(
+				object.sprite.texture.get_data().get_rect(block_texture_rect),
+				0
+			)
+			# Set the new texture to the block's sprite.
+			var block_sprite = block.get_node(object.sprite_name)
+			block_sprite.texture = block_texture
+
+			# Create a new 'CollisionPolygon2D' for each block.
+			# If the function return false, meaning it couldn't create a collision,
+			# continue the loop.
+			if not create_polygon_collision(block_sprite, block):
+				continue
+
+			# Postion each block.
+			block.position = Vector2(
+				block_texture_position.x + position.x - (object.offset.x - (object.offset.x / object.blocks_per_side.x)),
+				block_texture_position.y + position.y - (object.offset.y - (object.offset.y / object.blocks_per_side.y))
+			)
+			# Take the scale into account.
+			block.position *= object.sprite.get_scale()
+
+			# END - MODE 0
+
+			block.get_node(object.collision_name).disabled = true
 
 			# Add each block to the blocks container.
+			object.destructible_blocks.append(block)
 			object.blocks_container.add_child(block, true)
 
 			# Update the index.
@@ -252,10 +439,13 @@ func _ready():
 
 
 func _physics_process(delta):
+	if object.can_collapse and object.collapse:
+		collapse()
+
 	if object.can_detonate and object.detonate:
 		detonate()
 
-	if object.has_detonated:
+	if object.has_detonated or object.has_collapsed:
 		# Add a delay of 'delta' before counting the blocks.
 		# Sometimes the last one doesn't get counted.
 		if explosion_delay:
@@ -285,28 +475,36 @@ func add_blocks(child_object):
 	child_object.parent.add_child(child_object.blocks_container, true)
 
 	# Add a cover sprite to hide the possible mini gaps between blocks.
-	# Don't add it 'debug_mode' is set to 'true', so we can't see the debug blocks.
+	# Don't add if 'debug_mode' is set to 'true', so we can't see the debug blocks.
 	if not debug_mode: add_cover_sprite()
+	self.visible = not debug_mode
 
 	# Move the self object faaaar away, instead of removing it,
 	# so we can still use the script and its functions.
-	self.position = Vector2(-999999, -999999)
+#	self.position = Vector2(-999999, -999999)
 	# Set the object to sleep so it won't interact with the world.
-	self.sleeping = true
+#	self.sleeping = true
 	# If for some reason it wakes up,
 	# we make it invisible so at least we won't see it.
-	self.visible = false
+#	self.visible = false
+
+#	self.object.collision.disabled = true
 
 
 func add_cover_sprite():
 	# Duplicate the object's sprite.
 	var cover_sprite = Sprite.new()
 	cover_sprite.name = cover_sprite_name
-	cover_sprite.texture = get_node(object.sprite_name).texture
-	cover_sprite.scale = get_node(object.sprite_name).scale
-	cover_sprite.centered = get_node(object.sprite_name).centered
+	cover_sprite.texture = object.sprite.texture
+	cover_sprite.scale = object.sprite.scale
+	cover_sprite.centered = object.sprite_centered
 	cover_sprite.position = self.position
 	object.parent.add_child(cover_sprite, true)
+
+
+func remove_cover_sprite():
+	if object.parent.has_node(cover_sprite_name):
+		object.parent.get_node(cover_sprite_name).queue_free()
 
 
 func check_for_particles():
@@ -317,13 +515,44 @@ func check_for_particles():
 			object.has_particles = true
 
 
+func collapse():
+	if debug_mode: print("'%s' object has collapsed!" % self.name)
+
+	object.can_collapse = false
+	object.has_collapsed = true
+
+#	# Remove the cover sprite.
+	remove_cover_sprite()
+
+	self.visible = false
+	self.object.collision.disabled = true
+	# Set self object back to RIGID, so the blocks can work properly.
+	self.set_mode(MODE_RIGID)
+
+	for block in object.collapsible_blocks:
+		# Set each block's 'z_index'.
+		if random_depth:
+			block.z_index = 0 if randf() < 0.5 else -1
+		block.get_node(object.collision_name).disabled = false
+		block.set_mode(MODE_RIGID)
+
+	# Start the debris timer if the timer exists.
+	if object.debris_timer: object.debris_timer.start()
+
+
 func detonate():
+	if debug_mode: print("'%s' object has detonated!" % self.name)
+
 	object.can_detonate = false
 	object.has_detonated = true
 
-	# Remove the cover sprite.
-	if object.parent.has_node(cover_sprite_name):
-		object.parent.get_node(cover_sprite_name).queue_free()
+#	# Remove the cover sprite.
+	remove_cover_sprite()
+
+	self.visible = false
+	self.object.collision.disabled = true
+	# Set self object back to RIGID, so the blocks can work properly.
+	self.set_mode(MODE_RIGID)
 
 	# Check if the object has particles and if so, start emitting them.
 	if object.has_particles:
@@ -333,7 +562,8 @@ func detonate():
 			object.particles.emitting = true
 
 	# Set properties to each block.
-	for block in object.blocks_container.get_children():
+	for block in object.destructible_blocks:
+#	for block in object.blocks_container.get_children():
 		# Set each block's scale.
 		# If 'random_debris_scale' is set to 'true',
 		# some random blocks will scale to half its size.
@@ -347,8 +577,14 @@ func detonate():
 			# Set each block's mass depending on its scale.
 			block.mass *= block_scale 
 
+		# Set each block's 'z_index'.
+		if random_depth:
+			block.z_index = 0 if randf() < 0.5 else -1
+
 		# Start each block's color tween to make them darker.
 		block.get_node(color_tween_name).start()
+
+		block.get_node(object.collision_name).disabled = false
 
 		# Set each block to RIGID mode.
 		block.set_mode(MODE_RIGID)
@@ -359,23 +595,27 @@ func detonate():
 
 func explosion(delta):
 	if object.detonate:
-		if debug_mode: print("'%s' object exploded!" % self.name)
+#		if debug_mode: print("'%s' object has exploded!" % self.name)
 
-		for block in object.blocks_container.get_children():
+		for block in object.destructible_blocks:
+#		for block in object.blocks_container.get_children():
 			# Create a random angular velocity for each block, depending on its mass.
 			var block_angular_velocity = rand_range(
-				(block.mass * (blocks_impulse / blocks_gravity_scale)) / 2,
-				block.mass * (blocks_impulse / blocks_gravity_scale)
+				-(blocks_impulse / block.weight),
+				blocks_impulse / block.weight
 			)
 			# Set the angular velocity for each block.
 			block.angular_velocity = block_angular_velocity
-			# Create a random impulse for each block, depending on its mass.
-			var block_impulse = Vector2(
-				rand_range(-blocks_impulse, blocks_impulse),
-				rand_range(-blocks_impulse, (-blocks_impulse / blocks_gravity_scale))
-			)
-			# Apply a central impulse to each block.
+			# Create a random impulse for each block.
+			var block_rotation = rand_range(0, 360)
+			var block_impulse = (Vector2.ONE * blocks_impulse).rotated(deg2rad(block_rotation))
 			block.apply_central_impulse(block_impulse)
+
+		if object.can_collapse and object.collapse:
+			call_deferred("collapse")
+
+		# Remove the cover sprite.
+#		remove_cover_sprite()
 
 		# Add a delay before setting 'object.detonate' to 'false'.
 		# Sometimes 'object.detonate' is set to 'false' so quickly that the explosion never happens.
@@ -464,7 +704,7 @@ func create_polygon_collision(sprite, parent):
 			collision.polygon = polygons[i]
 			# Position the collision to the same position as the sprite's. 
 			# Check if the sprite is centered to get the proper position.
-			if sprite.centered:
+			if object.sprite_centered:
 				collision.position = sprite.position - (texture_size / 2)
 			else:
 				collision.position = sprite.position
@@ -481,3 +721,123 @@ func create_polygon_collision(sprite, parent):
 		parent.queue_free()
 
 		return false
+
+
+func create_polygon_from_sprite(sprite):
+	# Get the sprite's texture.
+	var texture = sprite.texture
+	# Get the sprite texture's size.
+	var texture_size = sprite.texture.get_size()
+	# Get the image from the sprite's texture.
+	var image = texture.get_data()
+
+	# Create a new bitmap.
+	var bitmap = BitMap.new()
+	# Create the bitmap from the image. We set the minimum alpha threshold.
+	bitmap.create_from_image_alpha(image, 0.01) # 0.1 (default threshold).
+	# Get the rect of the bitmap.
+	var bitmap_rect = Rect2(Vector2(0, 0), bitmap.get_size())
+	# Grow the bitmap if you need (we don't need it in this case).
+#	bitmap.grow_mask(0, rect) # 2
+	# Convert all the opaque parts of the bitmap into polygons.
+	var polygons = bitmap.opaque_to_polygons(bitmap_rect, 0) # 2 (default epsilon).
+
+	# Check if there are polygons.
+	if polygons.size() > 0:
+		# Loop through all the polygons.
+		for i in range(polygons.size()):
+			# Create a new 'Polygon2D'.
+			var polygon = Polygon2D.new()
+			# Set its polygon to the first polygon you've got
+			polygon.polygon = polygons[i]
+			polygon.texture = texture
+
+			# Check if the sprite is centered to get the proper position.
+			if object.sprite_centered:
+				polygon.position = sprite.position - (texture_size / 2)
+			else:
+				polygon.position = sprite.position
+
+			# Take the sprite's scale into account and apply it to the position.
+			polygon.scale = sprite.scale
+			polygon.position *= polygon.scale
+
+			polygon.name = "poly_sprite"
+
+			return polygon
+	else:
+		return false
+
+
+func boolean_polygon(operation, poly_base, poly_mask):
+	var polys_final = []
+	var polys_operation = []
+
+	# Union.
+	if operation == "merge":
+		polys_operation = Geometry.merge_polygons_2d(poly_base.polygon, poly_mask.polygon)
+	# Difference.
+	elif operation == "clip":
+		polys_operation = Geometry.clip_polygons_2d(poly_base.polygon, poly_mask.polygon)
+	# Common area.
+	elif operation == "intersect":
+		polys_operation = Geometry.intersect_polygons_2d(poly_base.polygon, poly_mask.polygon)
+	# All but common area.
+	elif operation == "exclude":
+		polys_operation = Geometry.exclude_polygons_2d(poly_base.polygon, poly_mask.polygon)
+
+	for i in polys_operation.size():
+		var new_poly = Polygon2D.new()
+		new_poly.name = "poly_final_" + operation + str(i)
+#		if poly_base.texture:
+#		new_poly.texture = poly_base.texture
+		new_poly.texture = object.sprite_texture
+		new_poly.polygon = polys_operation[i]
+
+		polys_final.append(new_poly)
+
+	return polys_final
+
+
+func create_poly_block(x, y):
+	# Create the "poly_block" points.
+	var poly_block_points = PoolVector2Array([
+		Vector2(0, 0),
+		Vector2((object.size.x / object.blocks_per_side.x), 0),
+		Vector2((object.size.x / object.blocks_per_side.x), (object.size.y / object.blocks_per_side.y)),
+		Vector2(0, (object.size.y / object.blocks_per_side.y))
+	])
+
+	# Position each point.
+	for i in poly_block_points.size():
+		var new_point = Vector2(
+				poly_block_points[i].x + (x * (object.size.x / object.blocks_per_side.x)),
+				poly_block_points[i].y + (y * (object.size.y / object.blocks_per_side.y))
+			)
+		poly_block_points[i] = new_point
+
+	# Reposition each point taking the offset into account.
+	for i in poly_block_points.size():
+		var new_point = poly_block_points[i] - (Vector2.ONE * object.offset)
+		poly_block_points[i] = new_point
+
+	# Create the new "poly_block" node.
+	var poly_block = Polygon2D.new()
+	poly_block.name = object.poly_block_name
+	poly_block.polygon = poly_block_points
+	poly_block.texture = object.sprite_texture
+	poly_block.texture_offset = object.offset
+
+	return poly_block
+
+
+func calculate_centroid(polygon):
+	var centroid = Vector2.ZERO
+
+	for i in polygon.size():
+		centroid.x += polygon[i].x
+		centroid.y += polygon[i].y
+
+	centroid /= polygon.size()
+
+	return centroid
