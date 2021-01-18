@@ -217,7 +217,9 @@ func _ready():
 			if random_collision:
 				block.set_collision_layer(0 if randf() < 0.5 else object.collision_layers)
 				block.set_collision_mask(0 if randf() < 0.5 else object.collision_masks)
-			if object.collision_one_way: block.get_node(object.collision_name).one_way_collision = true
+
+			if object.collision_one_way:
+				block.get_node(object.collision_name).one_way_collision = true
 
 			# Set each block's color tween.
 			var explosion_color = rand_range(100, 200) / 255
@@ -349,7 +351,7 @@ func check_for_particles():
 
 func collapse():
 	if debug_mode: print("'%s' object has collapsed!" % self.name)
-	print("lala")
+
 	object.can_collapse = false
 	object.has_collapsed = true
 
@@ -366,7 +368,7 @@ func collapse():
 		block.set_mode(MODE_RIGID)
 
 	# Start the debris timer if the timer exists.
-	if print(node_exists(object.debris_timer)):
+	if node_exists(object.debris_timer):
 		object.debris_timer.start()
 
 
