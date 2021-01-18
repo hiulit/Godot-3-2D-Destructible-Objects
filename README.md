@@ -1,4 +1,4 @@
-# Godot 3 2D Destructible Objects
+# Godot 3 2D Destructible Objects ![Godot v3.2](https://img.shields.io/badge/Godot-v3.2-%23478cbf?logo=godot-engine&logoColor=white)
 
 A script that takes a sprite, divides it into blocks and makes them explode 💥!
 
