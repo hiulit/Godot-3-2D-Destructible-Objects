@@ -5,8 +5,8 @@ var detonate_button = Button.new()
 
 var detonate = false
 
-var explosion_delay_timer = 0
-var explosion_delay_timer_limit = 0.5
+var explosion_delay_timer = 0.0
+var explosion_delay_timer_limit = 0.0
 
 func _ready():
 	reset_button.name = "reset_button"
@@ -34,24 +34,15 @@ func _physics_process(delta):
 	if detonate:
 		for destructible_object in get_tree().get_nodes_in_group("destructible_objects"):
 			if destructible_object.object.can_detonate:
-#				explosion_delay_timer_limit = delta
 				explosion_delay_timer += delta
 				if explosion_delay_timer > explosion_delay_timer_limit:
 					explosion_delay_timer -= explosion_delay_timer_limit
-					destructible_object.blocks_impulse = 50
-#					destructible_object.object.has_particles = false
 					destructible_object.object.detonate = true
-#		set_physics_process(false)
 
 
 func _on_reset_button_pressed():
 	var reset = get_tree().reload_current_scene()
-	if reset == OK:
-		print("-----")
-		print("RESET")
-		print("-----")
-	else:
-		# Print error.
+	if reset != OK:
 		print(reset)
 
 
