@@ -189,11 +189,8 @@ position = Vector2( 128, 544 )
 
 [node name="destructible_object" parent="destructible_objects" instance=ExtResource( 3 )]
 position = Vector2( 832, 512 )
-mass = 10.0
-gravity_scale = 10.0
 script = ExtResource( 4 )
-blocks_impulse = 150.0
-random_collision = false
+
 [connection signal="pressed" from="GUI/reset_button" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="GUI/detonate_button" to="." method="_on_detonate_button_pressed"]
 [connection signal="pressed" from="GUI/launch_button" to="." method="_on_launch_button_pressed"]
