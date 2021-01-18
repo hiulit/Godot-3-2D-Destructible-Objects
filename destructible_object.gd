@@ -377,8 +377,6 @@ func detonate():
 	object.can_detonate = false
 	object.has_detonated = true
 
-#	remove_cover_sprite()
-
 	self.visible = false
 	self.object.collision.disabled = true
 	# Set self object back to RIGID, so the blocks can work properly.
@@ -443,9 +441,6 @@ func explosion(delta):
 
 		if object.can_collapse and object.collapse:
 			call_deferred("collapse")
-
-		# Remove the cover sprite.
-#		remove_cover_sprite()
 
 		# Add a delay before setting 'object.detonate' to 'false'.
 		# Sometimes 'object.detonate' is set to 'false' so quickly that the explosion never happens.
