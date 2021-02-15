@@ -50,7 +50,7 @@ func _ready():
 	particles_timer.connect("timeout", self, "_on_particles_timer_timeout")
 
 	add_child(particles_timer, true)
-
+	visible = false
 	if start_timer: particles_timer.start()
 
 
@@ -58,7 +58,7 @@ func _process(delta):
 	# If there are particles in the particles array and
 	# 'particles_explode' is 'true', make them explode.
 	if particles.size() > 0 and particles_explode == true:
-
+		visible = true
 		_particles_explode(delta)
 
 		# Redraw the particles every frame.
